@@ -81,6 +81,9 @@ var BaseClass = function() {
       var eventNames = Object.keys(_listeners);
       for (i = 0; i < eventNames.length; i++) {
         eventName = eventNames[i];
+        if (eventName === "keepWatching_changed") {
+          continue;
+        }
         for (var j = 0; j < _listeners[eventName].length; j++) {
           document.removeEventListener(eventName, _listeners[eventName][j].listener);
         }
