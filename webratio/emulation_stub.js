@@ -249,7 +249,10 @@ function createStubs() {
             remove: function() {
                 mapView.hide('slide', {
                     direction: 'left',
-                    duration: 250
+                    duration: 250, 
+                    complete: function() {
+                        window.frameElement.style.pointerEvents = "";
+                    }
                 });
                 window.frameElement.style.pointerEvents = "";
                 window.frameElement.style.background = "";
