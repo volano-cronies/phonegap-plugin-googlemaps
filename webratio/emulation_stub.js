@@ -6,6 +6,9 @@ function createStubs() {
     var map = null;
     var mapView = null;
     var directionsMapView = null;
+    directionsService = null;
+    directionsDisplay = null;
+    directionsMap = null;
     var markers = [];
     var markersId = [];
     var infoWindows = [];
@@ -15,12 +18,7 @@ function createStubs() {
 
         $('#directions-map-canvas').remove();
 
-        /* Creates fake 'back' button and hides the original one */
-        $('#platform-events-fire-back').css("display", "none");
-        $('#platform-events-fire-suspend')
-                .before(
-                        "<button id=\"platform-events-fire-back-map\" class=\"ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only\"><span class=\"ui-button-text\">Back</span></button>");
-        $('#platform-events-fire-back-map').css("width", "90px");
+        wrapBackButton();
 
         var viewMapTemplate = [
                 "<section id=\"directions-map-canvas\" style=\"display:none; width:100%; height:100%; position: absolute;\">",
@@ -29,6 +27,14 @@ function createStubs() {
         var viewMap = $(viewMapTemplate);
         $('#overlay-views').append(viewMap);
         return viewMap;
+    }
+    
+    function wrapBackButton() {/* Creates fake 'back' button and hides the original one */
+        $('#platform-events-fire-back').css("display", "none");
+        $('#platform-events-fire-suspend')
+                .before(
+                        "<button id=\"platform-events-fire-back-map\" class=\"ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only\"><span class=\"ui-button-text\">Back</span></button>");
+        $('#platform-events-fire-back-map').css("width", "90px");
     }
 
     function initMapDiv() {
@@ -100,10 +106,13 @@ function createStubs() {
 
     var Map = {
         "moveCamera": function(options) {
-            var targets = options.target;
             map.setZoom(options.zoom);
-            if (options.target && options.target.length) {
-                fitBounds(options.target)
+            if (options.target) {
+                if (options.target.length) {
+                    fitBounds(options.target)
+                } else {
+                    map.setCenter(options.target);
+                }
             }
         }
     };
@@ -266,6 +275,25 @@ function createStubs() {
                 markersId = [];
                 infoWindows = [];
             },
+            getMyLocation: function(params, success_callback, error_callback) {
+                
+                var locationPromise = new Promise(function(resolve, reject) {
+                    navigator.geolocation.getCurrentPosition(function(position) {
+                        var location = {};
+                        location["latLng"] = {"lat": position.coords.latitude, "lng": position.coords.longitude};
+                        resolve(location);
+                    }, function() {
+                        reject("error");
+                    });
+                })
+
+                return locationPromise.then(function(result) {
+                    return result;
+                }, function(e) {
+                    console.log(e);
+                });
+            
+            },
             exec: function() {
                 var calledMethod = arguments[0];
                 if (calledMethod === "Marker.createMarker") {
@@ -288,22 +316,15 @@ function createStubs() {
         External: {
             launchNavigation: function(params) {
 
-                directionsMapView = initOpenMapForDirections();
-
-                var directionsDisplay;
-                var directionsService = new google.maps.DirectionsService();
-                var directionsMap;
-
-                directionsDisplay = new google.maps.DirectionsRenderer();
-
-                var mapOptions = {
-                    zoom: 8,
-                    center: new google.maps.LatLng(-34.397, 150.644)
-                };
-
-                directionsMap = new google.maps.Map(directionsMapView[0], mapOptions);
-
-                directionsDisplay.setMap(directionsMap);
+                if (!directionsMap) {
+                    directionsMapView = initOpenMapForDirections();
+                    directionsService = new google.maps.DirectionsService();
+                    directionsDisplay = new google.maps.DirectionsRenderer();
+                    directionsMap = new google.maps.Map(directionsMapView[0]);
+                    directionsDisplay.setMap(directionsMap);
+                } else {
+                    wrapBackButton();
+                } 
 
                 var request = {
                     origin: params.from,
