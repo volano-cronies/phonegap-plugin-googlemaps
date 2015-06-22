@@ -157,8 +157,9 @@ function createStubs() {
             if (index >= 0) {
                 var marker = markers[index];
                 marker.setMap(null);
-                infoWindows.setMap(null);
-                infoWindows.close();
+                var infoWindow = infoWindows[index];
+                infoWindow.setMap(null);
+                infoWindow.close();
                 markers.splice(index, 1);
                 markersId.splice(index, 1);
                 infoWindows.splice(index, 1);
