@@ -1,7 +1,7 @@
 function createStubs() {
 
     var $ = window.top.jQuery;
-    var gmapinitialized = false;
+    var mapInit = null;
     var google = null;
     var map = null;
     var mapView = null;
@@ -28,7 +28,7 @@ function createStubs() {
         $('#overlay-views').append(viewMap);
         return viewMap;
     }
-    
+
     function wrapBackButton() {/* Creates fake 'back' button and hides the original one */
         $('#platform-events-fire-back').css("display", "none");
         $('#platform-events-fire-suspend')
@@ -210,24 +210,34 @@ function createStubs() {
     }
 
     window.top["gmapinitialize"] = function() {
-        gmapinitialized = true;
+        mapInit["mapinitialized"] = true;
+        mapInit["resolve"]();
         google = window.top.google;
     };
+
+    mapInit = {
+        mapinitialized: false
+    };
+    mapInit["mappromise"] = new Promise(function(resolve) {
+        mapInit["resolve"] = resolve;
+    });
 
     setTimeout(loadScript, 400);
 
     return {
         GoogleMaps: {
             isAvailable: function() {
-                return gmapinitialized;
+                return mapInit["mapinitialized"];
             },
             getMap: function(options) {
 
                 if (!map) {
-                    mapView = initMapDiv();
-                    map = new google.maps.Map(mapView[0], options);
-                    mapView.mouseleave(function(e) {
-                        window.frameElement.style.pointerEvents = "";
+                    mapInit["mappromise"].then(function() {
+                        mapView = initMapDiv();
+                        map = new google.maps.Map(mapView[0], options);
+                        mapView.mouseleave(function(e) {
+                            window.frameElement.style.pointerEvents = "";
+                        });
                     });
                 } else {
                     map.setOptions(options);
@@ -248,7 +258,8 @@ function createStubs() {
             },
             setDiv: function(dim) {
                 setDimension(dim);
-                var wrMap = window.document.elementFromPoint(dim.left, dim.top);
+                var elements = window.document.elementsFromPoint(dim.left, dim.top);
+                var wrMap = $(elements).find("._gmaps_cdv_").get(0);
                 wrMap.addEventListener("mouseover", function(e) {
                     window.frameElement.style.pointerEvents = "none";
                 });
@@ -256,10 +267,13 @@ function createStubs() {
                 mapView.show();
                 window.frameElement.style.background = "transparent";
             },
+            pluginLayer_setClickable: function(clickable) {
+            // clickable
+            },
             remove: function() {
                 mapView.hide('slide', {
                     direction: 'left',
-                    duration: 250, 
+                    duration: 250,
                     complete: function() {
                         window.frameElement.style.pointerEvents = "";
                     }
@@ -277,23 +291,26 @@ function createStubs() {
                 infoWindows = [];
             },
             getMyLocation: function(params, success_callback, error_callback) {
-                
+
                 var locationPromise = new Promise(function(resolve, reject) {
                     navigator.geolocation.getCurrentPosition(function(position) {
                         var location = {};
-                        location["latLng"] = {"lat": position.coords.latitude, "lng": position.coords.longitude};
+                        location["latLng"] = {
+                            "lat": position.coords.latitude,
+                            "lng": position.coords.longitude
+                        };
                         resolve(location);
                     }, function() {
                         reject("error");
                     });
-                })
+                });
 
                 return locationPromise.then(function(result) {
                     return result;
                 }, function(e) {
                     console.log(e);
                 });
-            
+
             },
             exec: function() {
                 var calledMethod = arguments[0];
@@ -325,7 +342,7 @@ function createStubs() {
                     directionsDisplay.setMap(directionsMap);
                 } else {
                     wrapBackButton();
-                } 
+                }
 
                 var request = {
                     origin: params.from,

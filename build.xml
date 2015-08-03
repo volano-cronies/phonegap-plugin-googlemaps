@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="Account Manager plug-in" default="main">
+
+	<target name="main">
+
+		<zip destfile="../com.webratio.components.mobile.utility/NativePlugins/phonegap-googlemaps-plugin-master.zip">
+			<fileset dir=".">
+				<include name="src/**" />
+				<include name="webratio/**" />
+				<include name="www/**" />
+				<include name="plugin.xml" />
+				<exclude name=".git" />
+			</fileset>
+		</zip>
+
+	</target>
+
+</project>
+
