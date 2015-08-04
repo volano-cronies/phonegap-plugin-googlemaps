@@ -190,9 +190,10 @@ function createStubs() {
         "getPosition": function(id) {
             if (markersId.indexOf(id) >= 0) {
                 var marker = markers[markersId.indexOf(id)];
+                var pos = marker.getPosition();
                 return {
-                    "lat": marker.position.A,
-                    "lng": marker.position.F
+                    "lat": pos.lat(),
+                    "lng": pos.lng()
                 };
             }
         },
@@ -388,8 +389,8 @@ function createStubs() {
 
                             position.push({
                                 position: {
-                                    "lat": location.A,
-                                    "lng": location.F
+                                    "lat": location.lat(),
+                                    "lng": location.lng()
                                 }
                             });
                             resolve(position);
