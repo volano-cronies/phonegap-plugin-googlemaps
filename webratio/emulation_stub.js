@@ -42,9 +42,11 @@ function createStubs() {
         $('#map-canvas').remove();
 
         var viewMapTemplate = [
-                "<section id=\"map-canvas\" style=\"z-index:-1;display:none; width:100%; height:100%; position: absolute;\">",
+                "<section id=\"map-window\" style=\"z-index:0;display:none; width:100%; height:100%; position: absolute;\">",
+                "<div id=\"map-canvas\">",
                 // "<div id=\"map-canvas\" style=\"position: absolute; width: 100%; height: 100%;\">", "</div>",
-                "</section>" ].join("\n");
+                "</div>",
+                "</section>"].join("\n");
 
         var viewMap = $(viewMapTemplate);
         $('#overlay-views').append(viewMap);
@@ -247,7 +249,7 @@ function createStubs() {
             setVisible: function(isVisible) {
                 if (isVisible) {
                     mapView.show();
-                    window.frameElement.style.background = "transparent";
+                    $("#map_window").style.background = "transparent";
                 } else {
                     mapView.hide();
                     window.frameElement.style.background = "";
@@ -266,7 +268,7 @@ function createStubs() {
                 });
 
                 mapView.show();
-                window.frameElement.style.background = "transparent";
+                $("#map_window").style.background = "transparent";
             },
             pluginLayer_setClickable: function(clickable) {
             // clickable
