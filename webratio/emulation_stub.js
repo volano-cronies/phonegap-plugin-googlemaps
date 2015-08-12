@@ -13,6 +13,7 @@ function createStubs() {
     var markersId = [];
     var infoWindows = [];
     var lastBound = null;
+    var curCenter = null;
 
     function initOpenMapForDirections(params) {
 
@@ -43,9 +44,9 @@ function createStubs() {
 
         var viewMapTemplate = [
                 "<section id=\"map-window\" style=\"z-index:0;display:none; width:100%; height:100%; position: absolute;\">",
-                "<div id=\"map-canvas\">",
-                // "<div id=\"map-canvas\" style=\"position: absolute; width: 100%; height: 100%;\">", "</div>",
-                "</div>",
+                //"<div id=\"map-canvas\">",
+                "<div id=\"map-canvas\" style=\"position: absolute; width: 100%; height: 100%;\">", "</div>",
+                //"</div>",
                 "</section>"].join("\n");
 
         var viewMap = $(viewMapTemplate);
@@ -63,8 +64,10 @@ function createStubs() {
             setTimeout(function() {
                 if (lastBound) {
                     !lastBound.equals(map.getBounds()) && map.fitBounds(lastBound);
-                } else {
+                } else if (center) {
                     map.setCenter(center);
+                } else {
+                    map.setCenter(curCenter);
                 }
             }, 150);
         }
@@ -113,7 +116,8 @@ function createStubs() {
                 if (options.target.length) {
                     fitBounds(options.target)
                 } else {
-                    map.setCenter(options.target);
+                    curCenter = options.target;
+                    map.setCenter(curCenter);
                 }
             }
         }
@@ -249,7 +253,7 @@ function createStubs() {
             setVisible: function(isVisible) {
                 if (isVisible) {
                     mapView.show();
-                    $("#map_window").style.background = "transparent";
+                    mapView[0].style.background = "transparent";
                 } else {
                     mapView.hide();
                     window.frameElement.style.background = "";
@@ -268,7 +272,7 @@ function createStubs() {
                 });
 
                 mapView.show();
-                $("#map_window").style.background = "transparent";
+                mapView[0].style.background = "transparent";
             },
             pluginLayer_setClickable: function(clickable) {
             // clickable
