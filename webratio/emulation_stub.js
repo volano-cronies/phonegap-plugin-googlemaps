@@ -13,6 +13,8 @@ function createStubs() {
     var markersId = [];
     var infoWindows = [];
     var lastBound = null;
+    
+    /* Bug #10131 */
     var curCenter = null;
 
     function initOpenMapForDirections(params) {
@@ -57,16 +59,14 @@ function createStubs() {
 
     function setDimension(dim) {
         if (dim && mapView) {
-            var center = map.getCenter();
             mapView.width(dim.width).height(dim.height).css("top", dim.top).css("left", dim.left);
             google.maps.event.trigger(map, 'resize');
 
             setTimeout(function() {
                 if (lastBound) {
                     !lastBound.equals(map.getBounds()) && map.fitBounds(lastBound);
-                } else if (center) {
-                    map.setCenter(center);
                 } else {
+                    /* Bug #10131 */
                     map.setCenter(curCenter);
                 }
             }, 150);
@@ -116,6 +116,7 @@ function createStubs() {
                 if (options.target.length) {
                     fitBounds(options.target)
                 } else {
+                    /* Bug #10131 */
                     curCenter = options.target;
                     map.setCenter(curCenter);
                 }
