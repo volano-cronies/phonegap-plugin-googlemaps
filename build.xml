@@ -3,7 +3,7 @@
 
 	<target name="main">
 
-		<zip destfile="../com.webratio.components.mobile.utility/NativePlugins/phonegap-googlemaps-plugin-master.zip">
+		<zip destfile="D:/Sviluppo/Workspace_wr85/com.webratio.components.mobile.utility/NativePlugins/phonegap-googlemaps-plugin-master.zip">
 			<fileset dir=".">
 				<include name="src/**" />
 				<include name="webratio/**" />

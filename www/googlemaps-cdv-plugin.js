@@ -59,9 +59,10 @@ var BaseClass = function() {
 
     self.off = function(eventName, callback) {
         var i;
-        if (typeof eventName === "string" && eventName in _listeners) {
-
-            if (typeof callback === "function") {
+        if (typeof eventName === "string"){
+      if(eventName in _listeners) {
+      
+        if (typeof callback === "function") {
                 for (i = 0; i < _listeners[eventName].length; i++) {
                     if (_listeners[eventName][i].callback === callback) {
                         document.removeEventListener(eventName, _listeners[eventName][i].listener);
@@ -75,14 +76,12 @@ var BaseClass = function() {
                 }
                 delete _listeners[eventName];
             }
+         }
         } else {
             // Remove all event listeners
             var eventNames = Object.keys(_listeners);
             for (i = 0; i < eventNames.length; i++) {
                 eventName = eventNames[i];
-                if (eventName === "keepWatching_changed") {
-                    continue;
-                }
                 for (var j = 0; j < _listeners[eventName].length; j++) {
                     document.removeEventListener(eventName, _listeners[eventName][j].listener);
                 }
@@ -252,7 +251,8 @@ App.prototype._onCameraEvent = function(eventName, params) {
 };
 
 App.prototype.getMap = function(div, params) {
-    var self = this, args = [];
+  var self = this,
+      args = [];
 
     if (!isDom(div)) {
         params = div;
@@ -392,7 +392,8 @@ App.prototype.setOptions = function(options) {
 
 App.prototype.setCenter = function(latLng) {
     this.set('center', latLng);
-    cordova.exec(null, this.errorHandler, PLUGIN_NAME, 'exec', [ 'Map.setCenter', latLng.lat, latLng.lng ]);
+  cordova.exec(null, this.errorHandler,
+    PLUGIN_NAME, 'exec', ['Map.setCenter', latLng.lat, latLng.lng]);
 };
 
 App.prototype.setZoom = function(zoom) {
@@ -407,8 +408,12 @@ App.prototype.panBy = function(x, y) {
 
 /**
  * @desc Change the map type
- * @param {String} mapTypeId Specifies the one of the follow strings: MAP_TYPE_HYBRID MAP_TYPE_SATELLITE MAP_TYPE_TERRAIN
- *            MAP_TYPE_NORMAL MAP_TYPE_NONE
+ * @param {String} mapTypeId   Specifies the one of the follow strings:
+ *                               MAP_TYPE_HYBRID
+ *                               MAP_TYPE_SATELLITE
+ *                               MAP_TYPE_TERRAIN
+ *                               MAP_TYPE_NORMAL
+ *                               MAP_TYPE_NONE
  */
 App.prototype.setMapTypeId = function(mapTypeId) {
     if (mapTypeId !== plugin.google.maps.MapTypeId[mapTypeId.replace("MAP_TYPE_", '')]) {
@@ -433,7 +438,8 @@ App.prototype.setTilt = function(tilt) {
  * @params {Function} [callback] This callback is involved when the animation is completed.
  */
 App.prototype.animateCamera = function(cameraPosition, callback) {
-    if (cameraPosition.target && cameraPosition.target.type === "LatLngBounds") {
+  if (cameraPosition.target &&
+      cameraPosition.target.type === "LatLngBounds") {
         cameraPosition.target = [ cameraPosition.target.southwest, cameraPosition.target.northeast ];
     }
 
@@ -450,7 +456,8 @@ App.prototype.animateCamera = function(cameraPosition, callback) {
  * @params {Function} [callback] This callback is involved when the animation is completed.
  */
 App.prototype.moveCamera = function(cameraPosition, callback) {
-    if (cameraPosition.target && cameraPosition.target.type === "LatLngBounds") {
+  if (cameraPosition.target &&
+      cameraPosition.target.type === "LatLngBounds") {
         cameraPosition.target = [ cameraPosition.target.southwest, cameraPosition.target.northeast ];
     }
     var self = this;
@@ -539,7 +546,6 @@ App.prototype.setAllGesturesEnabled = function(enabled) {
 
 /**
  * Return the current position of the camera
- * 
  * @return {CameraPosition}
  */
 App.prototype.getCameraPosition = function(callback) {
@@ -553,7 +559,8 @@ App.prototype.getCameraPosition = function(callback) {
 };
 
 /**
- * Clears all markup that has been added to the map, including markers, polylines and ground overlays.
+ * Clears all markup that has been added to the map,
+ * including markers, polylines and ground overlays.
  */
 App.prototype.clear = function(callback) {
     var self = this;
@@ -669,7 +676,9 @@ var _remove_child = function(event) {
  * Show the map into the specified div.
  */
 App.prototype.setDiv = function(div) {
-    var self = this, args = [], element;
+  var self = this,
+      args = [],
+      element;
 
     var currentDiv = self.get("div");
     if (isDom(div) === false || currentDiv !== div) {
@@ -700,8 +709,7 @@ App.prototype.setDiv = function(div) {
     }
 
     if (isDom(div)) {
-        var children = getAllChildren(div);
-        ;
+    var children = getAllChildren(div);;
         self.set("div", div);
         args.push(getDivRect(div));
         var elements = [];
@@ -756,9 +764,8 @@ App.prototype.setDiv = function(div) {
 };
 
 /**
- * Return the visible region of the map. Thanks
- * 
- * @fschmidt
+ * Return the visible region of the map.
+ * Thanks @fschmidt
  */
 App.prototype.getVisibleRegion = function(callback) {
     var self = this;
@@ -873,6 +880,7 @@ App.prototype.addMarker = function(markerOptions, callback) {
     markerOptions.rotation = markerOptions.rotation || 0;
     markerOptions.opacity = parseFloat("" + markerOptions.opacity, 10) || 1;
     markerOptions.disableAutoPan = markerOptions.disableAutoPan === undefined ? false : markerOptions.disableAutoPan;
+    markerOptions.params = markerOptions.params || {};
     if ("styles" in markerOptions) {
         markerOptions.styles = typeof markerOptions.styles === "object" ? markerOptions.styles : {};
 
@@ -944,10 +952,9 @@ App.prototype.addPolyline = function(polylineOptions, callback) {
     cordova.exec(function(result) {
         var polyline = new Polyline(self, result.id, polylineOptions);
         OVERLAYS[result.id] = polyline;
-        /*
-         * if (typeof polylineOptions.onClick === "function") { polyline.on(plugin.google.maps.event.OVERLAY_CLICK,
-         * polylineOptions.onClick); }
-         */
+    /*if (typeof polylineOptions.onClick === "function") {
+      polyline.on(plugin.google.maps.event.OVERLAY_CLICK, polylineOptions.onClick);
+    }*/
         if (typeof callback === "function") {
             callback.call(self, polyline, self);
         }
@@ -999,8 +1006,9 @@ App.prototype.addTileOverlay = function(tilelayerOptions, callback) {
         var tileOverlay = new TileOverlay(self, result.id, tilelayerOptions);
         OVERLAYS[result.id] = tileOverlay;
         /*
-         * if (typeof tilelayerOptions.onClick === "function") { tileOverlay.on(plugin.google.maps.event.OVERLAY_CLICK,
-         * tilelayerOptions.onClick); }
+    if (typeof tilelayerOptions.onClick === "function") {
+      tileOverlay.on(plugin.google.maps.event.OVERLAY_CLICK, tilelayerOptions.onClick);
+    }
          */
         if (typeof callback === "function") {
             callback.call(self, tileOverlay, self);
@@ -1062,7 +1070,7 @@ App.prototype.geocode = function(geocoderRequest, callback) {
     console.log("Map.geocode will be deprecated. Please use Geocoder.geocode instead.");
     Geocoder.geocode(geocoderRequest, callback);
 };
-/**************************************************************************************************************************************
+/********************************************************************************
  * @name CameraPosition
  * @class This class represents new camera position
  * @property {LatLng} target The location where you want to show
@@ -1070,7 +1078,7 @@ App.prototype.geocode = function(geocoderRequest, callback) {
  * @property {Number} [zoom] Zoom level
  * @property {Number} [bearing] Map orientation
  * @property {Number} [duration] The duration of animation
- *************************************************************************************************************************************/
+ *******************************************************************************/
 var CameraPosition = function(params) {
     var self = this;
     self.zoom = params.zoom;
@@ -1080,9 +1088,9 @@ var CameraPosition = function(params) {
     self.hashCode = params.hashCode;
     self.duration = params.duration;
 };
-/**************************************************************************************************************************************
+/*****************************************************************************
  * Location Class
- *************************************************************************************************************************************/
+ *****************************************************************************/
 var Location = function(params) {
     var self = this;
     self.latLng = params.latLng || new LatLng(params.lat || 0, params.lng || 0);
@@ -1096,12 +1104,12 @@ var Location = function(params) {
     self.hashCode = params.hashCode;
 };
 
-/**************************************************************************************************************************************
+/*******************************************************************************
  * @name LatLng
  * @class This class represents new camera position
  * @param {Number} latitude
  * @param {Number} longitude
- *************************************************************************************************************************************/
+ ******************************************************************************/
 var LatLng = function(latitude, longitude) {
     var self = this;
     /**
@@ -1116,13 +1124,13 @@ var LatLng = function(latitude, longitude) {
 
     /**
      * Comparison function.
-     * 
      * @method
      * @return {Boolean}
      */
     self.equals = function(other) {
         other = other || {};
-        return other.lat === self.lat && other.lng === self.lng;
+    return other.lat === self.lat &&
+           other.lng === self.lng;
     };
 
     /**
@@ -1144,9 +1152,9 @@ var LatLng = function(latitude, longitude) {
     };
 };
 
-/**************************************************************************************************************************************
+/*****************************************************************************
  * Marker Class
- *************************************************************************************************************************************/
+ *****************************************************************************/
 var Marker = function(map, id, markerOptions) {
     BaseClass.apply(this);
 
@@ -1229,9 +1237,16 @@ Marker.prototype.setDisableAutoPan = function(disableAutoPan) {
     this.set('disableAutoPan', disableAutoPan);
     cordova.exec(null, this.errorHandler, PLUGIN_NAME, 'exec', [ 'Marker.setDisableAutoPan', this.getId(), disableAutoPan ]);
 };
+Marker.prototype.getParams = function () {
+    return this.get('params');
+};
 Marker.prototype.setOpacity = function(opacity) {
     this.set('opacity', opacity);
     cordova.exec(null, this.errorHandler, PLUGIN_NAME, 'exec', [ 'Marker.setOpacity', this.getId(), opacity ]);
+};
+Marker.prototype.setZIndex = function(zIndex) {
+  this.set('zIndex', opacity);
+  cordova.exec(null, this.errorHandler, PLUGIN_NAME, 'exec', ['Marker.setZIndex', this.getId(), zIndex]);
 };
 Marker.prototype.getOpacity = function() {
     return this.get('opacity');
@@ -1312,9 +1327,10 @@ Marker.prototype.setPosition = function(position) {
     cordova.exec(null, this.errorHandler, PLUGIN_NAME, 'exec', [ 'Marker.setPosition', this.getId(), position.lat, position.lng ]);
 };
 
-/**************************************************************************************************************************************
+
+/*****************************************************************************
  * Circle Class
- *************************************************************************************************************************************/
+ *****************************************************************************/
 var Circle = function(map, circleId, circleOptions) {
     BaseClass.apply(this);
 
@@ -1399,9 +1415,9 @@ Circle.prototype.setRadius = function(radius) {
     this.set('radius', radius);
     cordova.exec(null, this.errorHandler, PLUGIN_NAME, 'exec', [ 'Circle.setRadius', this.getId(), radius ]);
 };
-/**************************************************************************************************************************************
+/*****************************************************************************
  * Polyline Class
- *************************************************************************************************************************************/
+ *****************************************************************************/
 var Polyline = function(map, polylineId, polylineOptions) {
     BaseClass.apply(this);
 
@@ -1435,7 +1451,8 @@ Polyline.prototype.getId = function() {
 
 Polyline.prototype.setPoints = function(points) {
     this.set('points', points);
-    var i, path = [];
+  var i,
+      path = [];
     for (i = 0; i < points.length; i++) {
         path.push({
             "lat": points[i].lat,
@@ -1492,9 +1509,9 @@ Polyline.prototype.remove = function() {
 Polyline.prototype.getMap = function() {
     return this.map;
 };
-/**************************************************************************************************************************************
+/*****************************************************************************
  * Polygon Class
- *************************************************************************************************************************************/
+ *****************************************************************************/
 var Polygon = function(map, polygonId, polygonOptions) {
     BaseClass.apply(this);
 
@@ -1529,7 +1546,8 @@ Polygon.prototype.getId = function() {
 };
 Polygon.prototype.setPoints = function(points) {
     this.set('points', points);
-    var i, path = [];
+  var i,
+      path = [];
     for (i = 0; i < points.length; i++) {
         path.push({
             "lat": points[i].lat,
@@ -1550,9 +1568,7 @@ Polygon.prototype.getFillColor = function() {
 };
 Polygon.prototype.setStrokeColor = function(color) {
     this.set('strokeColor', color);
-    cordova
-            .exec(null, this.errorHandler, PLUGIN_NAME, 'exec',
-                    [ 'Polygon.setStrokeColor', this.getId(), HTMLColor2RGBA(color, 0.75) ]);
+  cordova.exec(null, this.errorHandler, PLUGIN_NAME, 'exec', ['Polygon.setStrokeColor', this.getId(), HTMLColor2RGBA(color, 0.75)]);
 };
 Polygon.prototype.getStrokeColor = function() {
     return this.get('strokeColor');
@@ -1592,9 +1608,9 @@ Polygon.prototype.remove = function() {
     this.off();
 };
 
-/**************************************************************************************************************************************
+  /*****************************************************************************
  * TileOverlay Class
- *************************************************************************************************************************************/
+ *****************************************************************************/
 var TileOverlay = function(map, tileOverlayId, tileOverlayOptions) {
     BaseClass.apply(this);
 
@@ -1668,9 +1684,9 @@ TileOverlay.prototype.remove = function() {
     this.off();
 };
 
-/**************************************************************************************************************************************
+/*****************************************************************************
  * GroundOverlay Class
- *************************************************************************************************************************************/
+ *****************************************************************************/
 var GroundOverlay = function(map, groundOverlayId, groundOverlayOptions) {
     BaseClass.apply(this);
 
@@ -1729,7 +1745,8 @@ GroundOverlay.prototype.setImage = function(url) {
 
 GroundOverlay.prototype.setBounds = function(points) {
     this.set('bounds', points);
-    var i, bounds = [];
+  var i,
+      bounds = [];
     for (i = 0; i < points.length; i++) {
         bounds.push({
             "lat": points[i].lat,
@@ -1763,9 +1780,9 @@ GroundOverlay.prototype.setZIndex = function(zIndex) {
     this.set('zIndex', zIndex);
     cordova.exec(null, this.errorHandler, PLUGIN_NAME, 'exec', [ 'GroundOverlay.setZIndex', this.getId(), zIndex ]);
 };
-/**************************************************************************************************************************************
+/*****************************************************************************
  * KmlOverlay Class
- *************************************************************************************************************************************/
+ *****************************************************************************/
 var KmlOverlay = function(map, kmlOverlayId, kmlOverlayOptions) {
     BaseClass.apply(this);
 
@@ -1807,7 +1824,8 @@ KmlOverlay.prototype.getId = function() {
     return this.id;
 };
 KmlOverlay.prototype.remove = function() {
-    var layerId = this.id, self = this;
+  var layerId = this.id,
+      self = this;
 
     this.trigger("_REMOVE");
     setTimeout(function() {
@@ -1816,9 +1834,9 @@ KmlOverlay.prototype.remove = function() {
     }, 1000);
 };
 
-/**************************************************************************************************************************************
+/*****************************************************************************
  * LatLngBounds Class
- *************************************************************************************************************************************/
+ *****************************************************************************/
 var LatLngBounds = function() {
     Object.defineProperty(this, "type", {
         value: "LatLngBounds",
@@ -1826,7 +1844,9 @@ var LatLngBounds = function() {
     });
 
     var args = [];
-    if (arguments.length === 1 && typeof arguments[0] === "object" && "push" in arguments[0]) {
+  if (arguments.length === 1 &&
+      typeof arguments[0] === "object" &&
+      "push" in arguments[0]) {
         args = arguments[0];
     } else {
         args = Array.prototype.slice.call(arguments, 0);
@@ -1887,13 +1907,13 @@ LatLngBounds.prototype.contains = function(latLng) {
     if (!("lat" in latLng) || !("lng" in latLng)) {
         return false;
     }
-    return (latLng.lat >= this.southwest.lat) && (latLng.lat <= this.northeast.lat) && (latLng.lng >= this.southwest.lng)
-            && (latLng.lng <= this.northeast.lng);
+  return (latLng.lat >= this.southwest.lat) && (latLng.lat <= this.northeast.lat) &&
+         (latLng.lng >= this.southwest.lng) && (latLng.lng <= this.northeast.lng);
 };
 
-/**************************************************************************************************************************************
+/*****************************************************************************
  * Private functions
- *************************************************************************************************************************************/
+ *****************************************************************************/
 // ---------------------------
 // Convert HTML color to RGB
 // ---------------------------
@@ -1901,9 +1921,12 @@ function isHTMLColorString(inputValue) {
     if (!inputValue || typeof inputValue !== "string") {
         return false;
     }
-    if (inputValue.match(/^#[0-9A-F]{3}$/i) || inputValue.match(/^#[0-9A-F]{4}$/i) || inputValue.match(/^#[0-9A-F]{6}$/i)
-            || inputValue.match(/^#[0-9A-F]{8}$/i) || inputValue.match(/^rgba?\([\d,.\s]+\)$/)
-            || inputValue.match(/^hsla?\([\d%,.\s]+\)$/)) {
+  if (inputValue.match(/^#[0-9A-F]{3}$/i) ||
+      inputValue.match(/^#[0-9A-F]{4}$/i) ||
+      inputValue.match(/^#[0-9A-F]{6}$/i) ||
+      inputValue.match(/^#[0-9A-F]{8}$/i) ||
+      inputValue.match(/^rgba?\([\d,.\s]+\)$/) ||
+      inputValue.match(/^hsla?\([\d%,.\s]+\)$/)) {
         return true;
     }
 
@@ -1916,7 +1939,9 @@ function HTMLColor2RGBA(colorValue, defaultOpacity) {
     if (colorValue === "transparent" || !colorValue) {
         return [ 0, 0, 0, 0 ];
     }
-    var alpha = Math.floor(255 * defaultOpacity), matches, result = {
+  var alpha = Math.floor(255 * defaultOpacity),
+      matches,
+      result = {
         r: 0,
         g: 0,
         b: 0
@@ -1928,7 +1953,12 @@ function HTMLColor2RGBA(colorValue, defaultOpacity) {
     if (colorStr.match(/^#([0-9A-F]){3}$/i)) {
         matches = colorStr.match(/([0-9A-F])/ig);
 
-        return [ parseInt(matches[0], 16), parseInt(matches[1], 16), parseInt(matches[2], 16), alpha ];
+    return [
+      parseInt(matches[0], 16),
+      parseInt(matches[1], 16),
+      parseInt(matches[2], 16),
+      alpha
+    ];
     }
 
     if (colorStr.match(/^#[0-9A-F]{4}$/i)) {
@@ -1936,23 +1966,43 @@ function HTMLColor2RGBA(colorValue, defaultOpacity) {
         alpha = parseInt(alpha + alpha, 16);
 
         matches = colorStr.match(/([0-9A-F])/ig);
-        return [ parseInt(matches[0], 16), parseInt(matches[1], 16), parseInt(matches[2], 16), alpha ];
+    return [
+      parseInt(matches[0], 16),
+      parseInt(matches[1], 16),
+      parseInt(matches[2], 16),
+      alpha
+    ];
     }
 
     if (colorStr.match(/^#[0-9A-F]{6}$/i)) {
         matches = colorStr.match(/([0-9A-F]{2})/ig);
-        return [ parseInt(matches[0], 16), parseInt(matches[1], 16), parseInt(matches[2], 16), alpha ];
+    return [
+      parseInt(matches[0], 16),
+      parseInt(matches[1], 16),
+      parseInt(matches[2], 16),
+      alpha
+    ];
     }
     if (colorStr.match(/^#[0-9A-F]{8}$/i)) {
         matches = colorStr.match(/([0-9A-F]{2})/ig);
 
-        return [ parseInt(matches[0], 16), parseInt(matches[1], 16), parseInt(matches[2], 16), parseInt(matches[3], 16) ];
+    return [
+      parseInt(matches[0], 16),
+      parseInt(matches[1], 16),
+      parseInt(matches[2], 16),
+      parseInt(matches[3], 16)
+    ];
     }
     // convert rgb(), rgba()
     if (colorStr.match(/^rgba?\([\d,.\s]+\)$/)) {
         matches = colorStr.match(/([\d.]+)/g);
         alpha = matches.length == 4 ? Math.floor(parseFloat(matches[3]) * 256) : alpha;
-        return [ parseInt(matches[0], 10), parseInt(matches[1], 10), parseInt(matches[2], 10), alpha ];
+    return [
+      parseInt(matches[0], 10),
+      parseInt(matches[1], 10),
+      parseInt(matches[2], 10),
+      alpha
+    ];
     }
 
     // convert hsl(), hsla()
@@ -1986,7 +2036,9 @@ function HLStoRGB(h, l, s) {
         return [ l, l, l ];
     }
 
-    var m2 = (l < 0.5) ? l * (1 + s) : l + s - l * s, m1 = l * 2 - m2, tmp;
+  var m2 = (l < 0.5) ? l * (1 + s) : l + s - l * s,
+      m1 = l * 2 - m2,
+      tmp;
 
     tmp = h + 120;
     if (tmp > 360) {
@@ -2031,17 +2083,25 @@ function HLStoRGB(h, l, s) {
 }
 
 function parseBoolean(boolValue) {
-    return typeof (boolValue) === "string" && boolValue.toLowerCase() === "true" || boolValue === true || boolValue === 1;
+  return typeof(boolValue) === "string" && boolValue.toLowerCase() === "true" ||
+     boolValue === true ||
+     boolValue === 1;
 }
 
 function isDom(element) {
-    return !!element && typeof element === "object" && "getBoundingClientRect" in element;
+  return !!element &&
+         typeof element === "object" &&
+         "getBoundingClientRect" in element;
 }
 function getPageRect() {
     var doc = document.documentElement;
 
-    var pageWidth = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth, pageHeight = window.innerHeight
-            || document.documentElement.clientHeight || document.body.clientHeight;
+  var pageWidth = window.innerWidth || 
+                  document.documentElement.clientWidth ||
+                  document.body.clientWidth,
+      pageHeight = window.innerHeight ||
+                   document.documentElement.clientHeight ||
+                   document.body.clientHeight;
     var pageLeft = (window.pageXOffset || doc.scrollLeft) - (doc.clientLeft || 0);
     var pageTop = (window.pageYOffset || doc.scrollTop) - (doc.clientTop || 0);
 
@@ -2110,9 +2170,9 @@ function onMapResize(event) {
     }
 
 }
-/**************************************************************************************************************************************
+/*****************************************************************************
  * External service
- *************************************************************************************************************************************/
+ *****************************************************************************/
 var externalService = {};
 
 externalService.launchNavigation = function(params) {
@@ -2130,9 +2190,9 @@ externalService.launchNavigation = function(params) {
     // params.to = params.to.replace(/\s+/g, "%20");
     cordova.exec(null, null, "External", 'launchNavigation', [ params ]);
 };
-/**************************************************************************************************************************************
+/*****************************************************************************
  * Geocoder class
- *************************************************************************************************************************************/
+ *****************************************************************************/
 var Geocoder = {};
 
 Geocoder.geocode = function(geocoderRequest, callback) {
@@ -2157,9 +2217,9 @@ Geocoder.geocode = function(geocoderRequest, callback) {
     pluginExec();
 };
 
-/**************************************************************************************************************************************
+/*****************************************************************************
  * Watch dog timer for child elements
- *************************************************************************************************************************************/
+ *****************************************************************************/
 var _mapInstance = new App();
 
 window._watchDogTimer = null;
@@ -2174,12 +2234,12 @@ _mapInstance.addEventListener("keepWatching_changed", function(oldValue, newValu
     if (window._watchDogTimer) {
         clearInterval(window._watchDogTimer);
     }
-    function init() {
-        window._watchDogTimer = window.setInterval(function() {
-            myFunc();
-        }, _mapInstance.getWatchDogTimer());
+  function init()
+  {
+    window._watchDogTimer = window.setInterval(function() { myFunc(); }, _mapInstance.getWatchDogTimer());
     }
-    function myFunc() {
+  function myFunc()
+  {
         var div = module.exports.Map.get("div");
         if (div) {
             children = getAllChildren(div);
@@ -2193,8 +2253,10 @@ _mapInstance.addEventListener("keepWatching_changed", function(oldValue, newValu
             prevChildrenCnt = childCnt;
             divSize = getDivRect(div);
             if (prevSize) {
-                if (divSize.left != prevSize.left || divSize.top != prevSize.top || divSize.width != prevSize.width
-                        || divSize.height != prevSize.height) {
+        if (divSize.left != prevSize.left ||
+            divSize.top != prevSize.top ||
+            divSize.width != prevSize.width ||
+            divSize.height != prevSize.height ) {
                     onMapResize();
                 }
             }
@@ -2220,9 +2282,10 @@ _mapInstance.addEventListener("keepWatching_changed", function(oldValue, newValu
     window._watchDogTimer = null;
 });
 
-/**************************************************************************************************************************************
- * geometry Encode / decode points http://jsfiddle.net/8nzg7tta/
- *************************************************************************************************************************************/
+/*****************************************************************************
+ * geometry Encode / decode points
+ * http://jsfiddle.net/8nzg7tta/
+ *****************************************************************************/
 // decode function
 function decodePath(encoded, precision) {
     precision = precision || 5;
@@ -2301,9 +2364,9 @@ function encodeNumber(num) {
     return encodeString;
 }
 
-/**************************************************************************************************************************************
+/*****************************************************************************
  * Name space
- *************************************************************************************************************************************/
+ *****************************************************************************/
 module.exports = {
     event: {
         MAP_CLICK: 'click',
@@ -2356,8 +2419,7 @@ module.exports = {
 cordova.addConstructor(function() {
     if (!window.Cordova) {
         window.Cordova = cordova;
-    }
-    ;
+  };
     window.plugin = window.plugin || {};
     window.plugin.google = window.plugin.google || {};
     window.plugin.google.maps = window.plugin.google.maps || module.exports;
@@ -2370,8 +2432,10 @@ function getAllChildren(root) {
     var list = [];
     var clickable;
     var style, displayCSS, opacityCSS, visibilityCSS;
-    var search = function(node) {
-        while (node != null) {
+  var search = function (node)
+  {
+    while (node != null)
+    {
             if (node.nodeType == 1) {
                 style = window.getComputedStyle(node);
                 visibilityCSS = style.getPropertyValue('visibility');
@@ -2379,7 +2443,9 @@ function getAllChildren(root) {
                 opacityCSS = style.getPropertyValue('opacity');
                 if (displayCSS !== "none" && opacityCSS > 0 && visibilityCSS != "hidden") {
                     clickable = node.getAttribute("data-clickable");
-                    if (clickable && clickable.toLowerCase() === "false" && node.hasChildNodes()) {
+          if (clickable &&
+              clickable.toLowerCase() === "false" &&
+              node.hasChildNodes()) {
                         Array.prototype.push.apply(list, getAllChildren(node));
                     } else {
                         list.push(node);
@@ -2400,8 +2466,7 @@ document.addEventListener("deviceready", function() {
     plugin.google.maps.Map.isAvailable();
 });
 
-const
-HTML_COLORS = {
+var HTML_COLORS = {
     "alideblue": "#f0f8ff",
     "antiquewhite": "#faebd7",
     "aqua": "#00ffff",

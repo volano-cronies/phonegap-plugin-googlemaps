@@ -48,6 +48,9 @@
   if ([json valueForKey:@"opacity"]) {
     [marker setOpacity:[[json valueForKey:@"opacity"] floatValue]];
   }
+  if ([json valueForKey:@"zIndex"]) {
+    [marker setZIndex:[[json valueForKey:@"zIndex"] intValue]];
+  }
   
   NSString *id = [NSString stringWithFormat:@"marker_%lu", (unsigned long)marker.hash];
   [self.mapCtrl.overlayManager setObject:marker forKey: id];
@@ -298,6 +301,20 @@
   CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
   [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 }
+/**
+ * Set zIndex
+ * @params MarkerKey
+ */
+-(void)setZIndex:(CDVInvokedUrlCommand *)command
+{
+    NSString *markerKey = [command.arguments objectAtIndex:1];
+    GMSMarker *marker = [self.mapCtrl.overlayManager objectForKey:markerKey];
+    marker.zIndex = [[command.arguments objectAtIndex:2] intValue];
+    
+    CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+}
+
 /**
  * Set draggable
  * @params MarkerKey
@@ -557,7 +574,10 @@
 -(void)setIcon_:(GMSMarker *)marker iconProperty:(NSDictionary *)iconProperty
                 pluginResult:(CDVPluginResult *)pluginResult
                 callbackId:(NSString*)callbackId {
-  NSLog(@"---- setIcon_");
+    
+  if (self.mapCtrl.debuggable) {
+    NSLog(@"---- setIcon_");
+  }
   NSString *iconPath = nil;
   CGFloat width = 0;
   CGFloat height = 0;
@@ -718,16 +738,34 @@
       /***
        * Load the icon from over the internet
        */
+      __block BOOL isMapped = (marker.map != nil);
       marker.map = nil;
       
+      /*
       // download the image asynchronously
-      NSURL *url = [NSURL URLWithString:iconPath];
       R9HTTPRequest *request = [[R9HTTPRequest alloc] initWithURL:url];
       [request setHTTPMethod:@"GET"];
       [request setTimeoutInterval:5];
       [request setFailedHandler:^(NSError *error){}];
-      request.completionHandlerWithData = ^(NSHTTPURLResponse *responseHeader,  NSData *responseData){
-        UIImage *image = [[UIImage alloc] initWithData:responseData];
+      */
+            
+            
+            dispatch_queue_t queue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0ul);
+            dispatch_async(queue, ^{
+                
+                NSURL *url = [NSURL URLWithString:iconPath];
+                
+                [self downloadImageWithURL:url completionBlock:^(BOOL succeeded, UIImage *image) {
+                    
+                    if (!succeeded) {
+                        
+                        if(isMapped) {
+                            marker.map = self.mapCtrl.map;
+                        }
+                        
+                        [self.commandDelegate sendPluginResult:pluginResult callbackId:callbackId];
+                        return;
+                    }
         
         if (width && height) {
           image = [image resize:width height:height];
@@ -753,7 +791,9 @@
             marker.infoWindowAnchor = CGPointMake(anchorX, anchorY);
           }
           
-          marker.map = self.mapCtrl.map;
+          if (isMapped) {
+             marker.map = self.mapCtrl.map;
+          }
           
           if (animation) {
             // Do animation, then send the result
@@ -772,24 +812,11 @@
         });
         
         
-      };
+                }];
       
-      [request setFailedHandler:^(NSError *error){
-        marker.map = self.mapCtrl.map;
+            });
         
-        if (self.mapCtrl.debuggable) {
-          NSLog(@"---- marker icon loading error");
-        }
-        if (animation) {
-          // Do animation, then send the result
-          [self setMarkerAnimation_:animation marker:marker pluginResult:pluginResult callbackId:callbackId];
-        } else {
-          // Send the result
-          [self.commandDelegate sendPluginResult:pluginResult callbackId:callbackId];
-        }
-      }];
       
-      [request startRequest];
     }
   } else if ([iconProperty valueForKey:@"iconColor"]) {
     UIColor *iconColor = [iconProperty valueForKey:@"iconColor"];
@@ -805,5 +832,21 @@
 
   }
   
+}
+
+- (void)downloadImageWithURL:(NSURL *)url completionBlock:(void (^)(BOOL succeeded, UIImage *image))completionBlock
+{
+    NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:url];
+    [NSURLConnection sendAsynchronousRequest:request
+                                       queue:[NSOperationQueue mainQueue]
+                           completionHandler:^(NSURLResponse *response, NSData *data, NSError *error) {
+                               if ( !error )
+                               {
+                                   UIImage *image = [[UIImage alloc] initWithData:data];
+                                   completionBlock(YES,image);
+                               } else{
+                                   completionBlock(NO,nil);
+                               }
+                           }];
 }
 @end

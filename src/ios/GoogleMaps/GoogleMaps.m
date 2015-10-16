@@ -16,7 +16,7 @@
   self.mapCtrl.isFullScreen = YES;
   self.locationCommandQueue = [[NSMutableArray alloc] init];
   
-  [self versionCheck];
+    //[self versionCheck];
   
   
   self.pluginLayer = [[MyPluginLayer alloc] initWithFrame:self.webView.frame];
@@ -72,7 +72,7 @@
  */
 -(void)versionCheck
 {
-  NSString *PLUGIN_VERSION = @"1.2.5";
+    NSString *PLUGIN_VERSION = @"1.3.3";
   NSLog(@"This app uses phonegap-googlemaps-plugin version %@", PLUGIN_VERSION);
   
   if ([PluginUtil isInDebugMode] == NO || [PluginUtil isIOS7_OR_OVER] == NO) {
@@ -97,7 +97,7 @@
     return;
   }
   
-  
+    /*
   dispatch_queue_t gueue = dispatch_queue_create("plugins.google.maps.version_check", NULL);
   dispatch_async(gueue, ^{
     NSURL *URL = [NSURL URLWithString:@"http://plugins.cordova.io/api/plugin.google.maps"];
@@ -118,6 +118,7 @@
     }];
     [request startRequest];
   });
+     */
 }
 
 -(void)viewDidLayoutSubviews {
@@ -158,10 +159,10 @@
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
     return;
   } else {
-    dispatch_queue_t gueue = dispatch_queue_create("plugins.google.maps.init", NULL);
     
+        //dispatch_queue_t gueue = dispatch_queue_create("plugins.google.maps.init", NULL);
+        
     // Create a map view
-    dispatch_async(gueue, ^{
       NSDictionary *options = [command.arguments objectAtIndex:0];
       self.mapCtrl = [[GoogleMapsViewController alloc] initWithOptions:options];
       self.mapCtrl.webView = self.webView;
@@ -170,18 +171,15 @@
         NSArray *rgbColor = [options objectForKey:@"backgroundColor"];
         self.pluginLayer.backgroundColor = [rgbColor parsePluginColor];
       }
-    });
     
     
     // Create an instance of Map Class
-    dispatch_async(gueue, ^{
       Map *mapClass = [[NSClassFromString(@"Map")alloc] initWithWebView:self.webView];
       mapClass.commandDelegate = self.commandDelegate;
       [mapClass setGoogleMapsViewController:self.mapCtrl];
       [self.mapCtrl.plugins setObject:mapClass forKey:@"Map"];
       
       
-      dispatch_sync(dispatch_get_main_queue(), ^{
         if ([command.arguments count] == 3) {
           [self.mapCtrl.view removeFromSuperview];
           self.mapCtrl.isFullScreen = NO;
@@ -198,8 +196,6 @@
         CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
         [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 
-      });
-    });
   }
 }
 
