@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="Account Manager plug-in" default="main">
+<project name="Google Maps plug-in" default="main">
 
 	<target name="main">
 
@@ -9,7 +9,15 @@
 				<include name="webratio/**" />
 				<include name="www/**" />
 				<include name="plugin.xml" />
-				<exclude name=".git" />
+				<exclude name="**/.git" />
+				<exclude name="**/.project" />
+			</fileset>
+		</zip>
+
+		<zip destfile="D:/Sviluppo/Workspace_wr85/com.webratio.components.mobile.utility/NativePlugins/googlemaps-ios-sdk-for-phonegap-master.zip">
+			<fileset dir="../googlemaps-ios-sdk-for-phonegap">
+				<exclude name="**/.git" />
+				<exclude name="**/.project" />
 			</fileset>
 		</zip>
 
