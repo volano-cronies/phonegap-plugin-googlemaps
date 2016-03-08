@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="Google Maps plug-in" default="main">
 
+	<property name="output.dir" location="${basedir}/../webratio-tool/com.webratio.components.mobile.utility/NativePlugins" />
+	
 	<target name="main">
 
-		<zip destfile="D:/Sviluppo/Workspace_wr85/com.webratio.components.mobile.utility/NativePlugins/phonegap-googlemaps-plugin-master.zip">
+		<zip destfile="${output.dir}/phonegap-googlemaps-plugin-master.zip">
 			<fileset dir=".">
 				<include name="src/**" />
 				<include name="webratio/**" />
@@ -14,7 +16,7 @@
 			</fileset>
 		</zip>
 
-		<zip destfile="D:/Sviluppo/Workspace_wr85/com.webratio.components.mobile.utility/NativePlugins/googlemaps-ios-sdk-for-phonegap-master.zip">
+		<zip destfile="${output.dir}/googlemaps-ios-sdk-for-phonegap-master.zip">
 			<fileset dir="../googlemaps-ios-sdk-for-phonegap">
 				<exclude name="**/.git" />
 				<exclude name="**/.project" />
