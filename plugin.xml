@@ -17,12 +17,8 @@
       <engine name="cordova" version=">=3.5.0" />
     </engines>
     
-    <dependency id="plugin.http.request" />
-    
     <!-- android -->
     <platform name="android">
-        <preference name="API_KEY_FOR_ANDROID" />
-        
         <info>
              In order to run this plugin, you need to obtain Google Maps API key for Android.
              Visit to https://github.com/wf9a5m75/phonegap-googlemaps-plugin/wiki/Installation
@@ -43,8 +39,6 @@
             </feature>
         </config-file>
 
-        <dependency id="com.google.playservices" url="https://github.com/wf9a5m75/google-play-services#v23" />
-    
         <!-- plugin src files -->
         <source-file src="src/android/plugin/google/maps/AsyncLicenseInfo.java" target-dir="src/plugin/google/maps" />
         <source-file src="src/android/plugin/google/maps/AsyncKmlParser.java" target-dir="src/plugin/google/maps" />
@@ -93,8 +87,6 @@
     
     <!-- ios -->
     <platform name="ios">
-        <preference name="API_KEY_FOR_IOS" />
-      
         <info>
              In order to run this plugin, you need to obtain Google Maps API key for iOS.
              Visit to https://github.com/wf9a5m75/phonegap-googlemaps-plugin/wiki/Installation
@@ -183,7 +175,5 @@
             </dict>
           </array>
         </config-file>
-        
-        <dependency id="com.googlemaps.ios" url="https://github.com/wf9a5m75/googlemaps-ios-sdk-for-phonegap" commit="master" />
     </platform>
 </plugin>
