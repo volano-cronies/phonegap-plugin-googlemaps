@@ -40,8 +40,11 @@
             </feature>
         </config-file>
 
+        <dependency id="com.google.playservices" version="23.0.0.2wr" />
+        <!--
         <framework src="com.google.android.gms:play-services-maps:+" />
         <framework src="com.google.android.gms:play-services-location:+" />
+        -->
 
         <!-- plugin src files -->
         <source-file src="src/android/plugin/google/maps/AsyncLicenseInfo.java" target-dir="src/plugin/google/maps" />
@@ -204,6 +207,6 @@
           </array>
         </config-file>
 
-        <dependency id="com.googlemaps.ios" url="https://bitbucket.org/nightstomp/cordova-plugin-googlemaps-sdk.git" commit="master" />
+        <dependency id="com.webratio.com.googlemaps.ios" url="https://github.com/webratio/googlemaps-ios-sdk-for-phonegap.git" commit="v1.10.3.1" />
     </platform>
 </plugin>
