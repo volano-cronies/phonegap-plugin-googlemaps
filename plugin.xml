@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<plugin id="plugin.google.maps" version="1.2.5" xmlns="http://apache.org/cordova/ns/plugins/1.0" xmlns:android="http://schemas.android.com/apk/res/android">
+<plugin id="com.webratio.plugin.google.maps" version="1.2.5.1" xmlns="http://apache.org/cordova/ns/plugins/1.0" xmlns:android="http://schemas.android.com/apk/res/android">
     <name>phonegap-googlemaps-plugin</name>
     <js-module name="phonegap-googlemaps-plugin" src="www/googlemaps-cdv-plugin.js">
         <clobbers target="plugin.google.maps" />
@@ -7,8 +7,7 @@
 
     
     <description>Google Maps native SDK for Android and iOS</description>
-    <repo>https://github.com/wf9a5m75/phonegap-googlemaps-plugin/</repo>
-    <issue>https://github.com/wf9a5m75/phonegap-googlemaps-plugin/issues</issue>
+    <repo>https://github.com/webratio/phonegap-plugin-googlemaps</repo>
 
     <license>Apache 2.0</license>
     
