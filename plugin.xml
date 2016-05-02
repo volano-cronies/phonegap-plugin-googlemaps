@@ -207,6 +207,6 @@
           </array>
         </config-file>
 
-        <dependency id="com.webratio.com.googlemaps.ios" url="https://github.com/webratio/googlemaps-ios-sdk-for-phonegap.git" commit="v1.10.3.1" />
+        <dependency id="com.googlemaps.ios" url="https://bitbucket.org/nightstomp/cordova-plugin-googlemaps-sdk.git" commit="862d8a2ba17350221ee85bd72d6caf99bcecf947" /> <!-- 1.13.0 -->
     </platform>
 </plugin>
