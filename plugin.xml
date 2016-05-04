@@ -40,6 +40,7 @@
             </feature>
         </config-file>
 
+        <dependency id="com.webratio.androidsupport" version="23.2.1" />
         <dependency id="com.google.playservices" version="23.0.0.2wr" />
         <!--
         <framework src="com.google.android.gms:play-services-maps:+" />
