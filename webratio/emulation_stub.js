@@ -121,7 +121,13 @@ function createStubs() {
                     map.setCenter(curCenter);
                 }
             }
-        }
+        },
+        "getCameraPosition" : function() {
+            return {
+                "zoom": map.getZoom(),
+                "tilt": map.getTilt()
+        };
+} 
     };
 
     var Marker = {
@@ -336,6 +342,10 @@ function createStubs() {
                     return Marker.setPosition(arguments[1], arguments[2], arguments[3]);
                 } else if (calledMethod === "Map.moveCamera") {
                     return Map.moveCamera(arguments[1], arguments[2]);
+                } else if (calledMethod === "Map.getCameraPosition") {
+                    return Map.getCameraPosition();
+                } else {
+                    throw new Error("Unknown method " + calledMethod); 
                 }
             }
         },
