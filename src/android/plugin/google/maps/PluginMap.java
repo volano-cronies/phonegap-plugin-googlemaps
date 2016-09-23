@@ -14,13 +14,12 @@ import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.Point;
-import android.os.Handler;
 import android.util.Base64;
-import android.util.Log;
 
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.GoogleMap.OnCameraChangeListener;
 import com.google.android.gms.maps.GoogleMapOptions;
 import com.google.android.gms.maps.UiSettings;
 import com.google.android.gms.maps.model.CameraPosition;
@@ -357,8 +356,15 @@ public class PluginMap extends MyPlugin {
    * @param callbackContext
    */
   private void myMoveCamera(final CameraUpdate cameraUpdate, final CallbackContext callbackContext) {
-    map.moveCamera(cameraUpdate);
-    callbackContext.success();
+      map.setOnCameraChangeListener(new OnCameraChangeListener() {
+
+          @Override
+          public void onCameraChange(CameraPosition arg0) {
+              map.setOnCameraChangeListener(mapCtrl);
+              map.moveCamera(cameraUpdate);
+              callbackContext.success();                
+          }
+      });
   }
 
   /**
