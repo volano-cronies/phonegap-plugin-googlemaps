@@ -1,13 +1,16 @@
 package plugin.google.maps;
 
 import java.io.ByteArrayOutputStream;
+import java.lang.reflect.Method;
 
 import org.apache.cordova.CallbackContext;
+import org.apache.cordova.CordovaInterface;
 import org.apache.cordova.PluginResult;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.Point;
@@ -27,6 +30,11 @@ import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.VisibleRegion;
 
 public class PluginMap extends MyPlugin {
+  private final String ANIMATE_CAMERA_DONE = "animate_camera_done";
+  private final String ANIMATE_CAMERA_CANCELED = "animate_camera_canceled";
+  private JSONArray _saveArgs = null;
+  private CallbackContext _saveCallbackContext = null;
+
   /**
    * @param args
    * @param callbackContext
@@ -53,7 +61,6 @@ public class PluginMap extends MyPlugin {
       }
       if (controls.has("myLocationButton")) {
         settings.setMyLocationButtonEnabled(controls.getBoolean("myLocationButton"));
-        map.setMyLocationEnabled(controls.getBoolean("myLocationButton"));
       }
     }
     
@@ -137,8 +144,23 @@ public class PluginMap extends MyPlugin {
         mapCtrl.fitBounds(cameraBounds);
       }
     }
-    
-    this.sendNoResult(callbackContext);
+
+    if (params.has("controls")) {
+      JSONObject controls = params.getJSONObject("controls");
+
+      if (controls.has("myLocationButton")) {
+        isEnabled = controls.getBoolean("myLocationButton");
+        JSONArray args2 = new JSONArray();
+        args2.put("Map.setMyLocationEnabled");
+        args2.put(isEnabled);
+        this.setMyLocationEnabled(args2, callbackContext);
+
+      } else {
+        this.sendNoResult(callbackContext);
+      }
+    } else {
+      this.sendNoResult(callbackContext);
+    }
   }
   
   /**
@@ -170,7 +192,7 @@ public class PluginMap extends MyPlugin {
     float tilt = -1;
     tilt = (float) args.getDouble(1);
 
-    if (tilt > 0 && tilt <= 90) {
+    if (tilt >= 0 && tilt <= 90) {
       CameraPosition currentPos = map.getCameraPosition();
       CameraPosition newPosition = new CameraPosition.Builder()
           .target(currentPos.target).bearing(currentPos.bearing)
@@ -254,7 +276,7 @@ public class PluginMap extends MyPlugin {
     PluginUtil.MyCallbackContext myCallback = new PluginUtil.MyCallbackContext("moveCamera", webView) {
       @Override
       public void onResult(final PluginResult pluginResult) {
-        if (finalCameraBounds != null) {
+        if (finalCameraBounds != null && ANIMATE_CAMERA_DONE.equals(pluginResult.getStrMessage())) {
           CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngBounds(finalCameraBounds, (int)density);
           map.moveCamera(cameraUpdate);
 
@@ -278,7 +300,7 @@ public class PluginMap extends MyPlugin {
           builder.target(map.getCameraPosition().target);
           map.moveCamera(CameraUpdateFactory.newCameraPosition(builder.build()));
         }
-        callbackContext.sendPluginResult(pluginResult);
+        callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK));
       }
     };
     if (action.equals("moveCamera")) {
@@ -347,11 +369,51 @@ public class PluginMap extends MyPlugin {
    */
   @SuppressWarnings("unused")
   private void setMyLocationEnabled(final JSONArray args, final CallbackContext callbackContext) throws JSONException {
-    Boolean isEnabled = false;
-    isEnabled = args.getBoolean(1);
+    Boolean isEnabled = args.getBoolean(1);
+    if (!map.isMyLocationEnabled() && !isEnabled) {
+      this.sendNoResult(callbackContext);
+      return;
+    }
+
+
+    // Request geolocation permission.
+    boolean locationPermission = false;
+    try {
+      Method hasPermission = CordovaInterface.class.getDeclaredMethod("hasPermission", String.class);
+
+      String permission = "android.permission.ACCESS_COARSE_LOCATION";
+      locationPermission = (Boolean) hasPermission.invoke(cordova, permission);
+    } catch (Exception e) {
+      PluginResult result;
+      result = new PluginResult(PluginResult.Status.ILLEGAL_ACCESS_EXCEPTION);
+      callbackContext.sendPluginResult(result);
+      return;
+    }
+
+    if (!locationPermission) {
+      _saveArgs = args;
+      _saveCallbackContext = callbackContext;
+      mapCtrl.requestPermissions(PluginMap.this, 0, new String[]{"android.permission.ACCESS_FINE_LOCATION", "android.permission.ACCESS_COARSE_LOCATION"});
+      return;
+    }
+
     map.setMyLocationEnabled(isEnabled);
     map.getUiSettings().setMyLocationButtonEnabled(isEnabled);
     this.sendNoResult(callbackContext);
+  }
+
+
+  public void onRequestPermissionResult(int requestCode, String[] permissions,
+                                        int[] grantResults) throws JSONException {
+    PluginResult result;
+    for (int r : grantResults) {
+      if (r == PackageManager.PERMISSION_DENIED) {
+        result = new PluginResult(PluginResult.Status.ERROR, "Geolocation permission request was denied.");
+        _saveCallbackContext.sendPluginResult(result);
+        return;
+      }
+    }
+    setMyLocationEnabled(_saveArgs, _saveCallbackContext);
   }
 
   /**
@@ -416,7 +478,7 @@ public class PluginMap extends MyPlugin {
         : mapTypeId;
 
     if (mapTypeId == -1) {
-      callbackContext.error("Unknow MapTypeID is specified:" + typeStr);
+      callbackContext.error("Unknown MapTypeID is specified:" + typeStr);
       return;
     }
     
@@ -436,12 +498,12 @@ public class PluginMap extends MyPlugin {
     GoogleMap.CancelableCallback callback = new GoogleMap.CancelableCallback() {
       @Override
       public void onFinish() {
-        callbackContext.success();
+        callbackContext.success(ANIMATE_CAMERA_DONE);
       }
 
       @Override
       public void onCancel() {
-        callbackContext.success();
+        callbackContext.success(ANIMATE_CAMERA_CANCELED);
       }
     };
 
@@ -528,12 +590,12 @@ public class PluginMap extends MyPlugin {
   
   @SuppressWarnings("unused")
   private void fromPointToLatLng(final JSONArray args, final CallbackContext callbackContext) throws JSONException {
-    int pointX, pointY;
-    pointX = args.getInt(1);
-    pointY = args.getInt(2);
-    Point point = new Point();
-    point.x = pointX;
-    point.y = pointY;
+    double pointX, pointY;
+    pointX = args.getDouble(1);
+    pointY = args.getDouble(2);
+    final Point point = new Point();
+    point.x = (int)(pointX * density);
+    point.y = (int)(pointY * density);
     LatLng latlng = map.getProjection().fromScreenLocation(point);
     JSONArray pointJSON = new JSONArray();
     pointJSON.put(latlng.latitude);

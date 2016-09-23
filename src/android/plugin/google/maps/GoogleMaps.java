@@ -29,6 +29,7 @@ import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.view.WindowManager;
 import android.widget.AbsoluteLayout;
 import android.widget.FrameLayout;
@@ -96,20 +97,44 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+
 @SuppressWarnings("deprecation")
 public class GoogleMaps extends CordovaPlugin implements View.OnClickListener, OnMarkerClickListener,
       OnInfoWindowClickListener, OnMapClickListener, OnMapLongClickListener,
       OnCameraChangeListener, OnMapLoadedCallback, OnMarkerDragListener,
-      OnMyLocationButtonClickListener, OnIndoorStateChangeListener, InfoWindowAdapter {
+      OnMyLocationButtonClickListener, OnIndoorStateChangeListener, InfoWindowAdapter, ViewTreeObserver.OnScrollChangedListener {
   private final String TAG = "GoogleMapsPlugin";
-  private final HashMap<String, PluginEntry> plugins = new HashMap<String, PluginEntry>();
+  public final HashMap<String, PluginEntry> plugins = new HashMap<String, PluginEntry>();
   private float density;
   private HashMap<String, Bundle> bufferForLocationDialog = new HashMap<String, Bundle>();
   private FrameLayout mapFrame = null;
 
-  private enum EVENTS {
-    onScrollChanged
+  @Override
+  public void onScrollChanged() {
+    if (mPluginLayout == null) {
+      return;
+    }
+    View view = webView.getView();
+    mPluginLayout.scrollTo(view.getScrollX(), view.getScrollY());
+
+    if (mapDivLayoutJSON != null) {
+      try {
+        float divW = contentToView(mapDivLayoutJSON.getLong("width"));
+        float divH = contentToView(mapDivLayoutJSON.getLong("height"));
+        float divLeft = contentToView(mapDivLayoutJSON.getLong("left"));
+        float divTop = contentToView(mapDivLayoutJSON.getLong("top"));
+
+        mPluginLayout.setDrawingRect(
+            divLeft,
+            divTop - view.getScrollY(),
+            divLeft + divW,
+            divTop + divH - view.getScrollY());
+      } catch (JSONException e) {
+        e.printStackTrace();
+      }
+    }
   }
+
   private enum TEXT_STYLE_ALIGNMENTS {
     left, center, right
   }
@@ -125,7 +150,6 @@ public class GoogleMaps extends CordovaPlugin implements View.OnClickListener, O
   private ViewGroup root;
   private final int CLOSE_LINK_ID = 0x7f999990;  //random
   private final int LICENSE_LINK_ID = 0x7f99991; //random
-  private final String PLUGIN_VERSION = "1.3.3";
   private MyPluginLayout mPluginLayout = null;
   public boolean isDebug = false;
   private GoogleApiClient googleApiClient = null;
@@ -140,6 +164,7 @@ public class GoogleMaps extends CordovaPlugin implements View.OnClickListener, O
     density = Resources.getSystem().getDisplayMetrics().density;
     final View view = webView.getView();
     root = (ViewGroup) view.getParent();
+    view.getViewTreeObserver().addOnScrollChangedListener(GoogleMaps.this);
 
     // Is this release build version?
     boolean isRelease = false;
@@ -150,42 +175,6 @@ public class GoogleMaps extends CordovaPlugin implements View.OnClickListener, O
     } catch (Exception e) {}
 
     //Log.i("CordovaLog", "This app uses phonegap-googlemaps-plugin version " + PLUGIN_VERSION);
-
-    if (!isRelease) {
-      cordova.getThreadPool().execute(new Runnable() {
-        @Override
-        public void run() {
-
-          try {
-
-            /*
-
-            JSONArray params = new JSONArray();
-            params.put("get");
-            params.put("http://plugins.cordova.io/api/plugin.google.maps");
-            HttpRequest httpReq = new HttpRequest();
-            httpReq.initialize(cordova, null);
-            httpReq.execute("execute", params, new CallbackContext("version_check", webView) {
-              @Override
-              public void sendPluginResult(PluginResult pluginResult) {
-                if (pluginResult.getStatus() == PluginResult.Status.OK.ordinal()) {
-                  try {
-                    JSONObject result = new JSONObject(pluginResult.getStrMessage());
-                    JSONObject distTags = result.getJSONObject("dist-tags");
-                    String latestVersion = distTags.getString("latest");
-                    if (latestVersion.equals(PLUGIN_VERSION) == false) {
-                      Log.i("CordovaLog", "phonegap-googlemaps-plugin version " + latestVersion + " is available.");
-                    }
-                  } catch (JSONException e) {}
-
-                }
-              }
-            });
-            */
-          } catch (Exception e) {}
-        }
-      });
-    }
 
     cordova.getActivity().runOnUiThread(new Runnable() {
       @SuppressLint("NewApi")
@@ -574,11 +563,6 @@ public class GoogleMaps extends CordovaPlugin implements View.OnClickListener, O
           if (params.has("controls")) {
             JSONObject controls = params.getJSONObject("controls");
 
-            if (controls.has("myLocationButton")) {
-              Boolean isEnabled = controls.getBoolean("myLocationButton");
-              map.setMyLocationEnabled(isEnabled);
-              map.getUiSettings().setMyLocationButtonEnabled(isEnabled);
-            }
             if (controls.has("indoorPicker")) {
               Boolean isEnabled = controls.getBoolean("indoorPicker");
               map.setIndoorEnabled(isEnabled);
@@ -618,7 +602,30 @@ public class GoogleMaps extends CordovaPlugin implements View.OnClickListener, O
               }, 300);
             }
           }
-          callbackContext.success();
+
+
+          if (params.has("controls")) {
+            JSONObject controls = params.getJSONObject("controls");
+
+            if (controls.has("myLocationButton")) {
+              Boolean isEnabled = controls.getBoolean("myLocationButton");
+              JSONArray args = new JSONArray();
+              args.put("Map.setMyLocationEnabled");
+              args.put(isEnabled);
+              GoogleMaps.this.execute("exec", args, new PluginUtil.MyCallbackContext("myLocationButton", webView) {
+                @Override
+                public void onResult(PluginResult pluginResult) {
+                  callbackContext.success();
+                }
+              });
+
+            } else {
+              callbackContext.success();
+            }
+          } else {
+            callbackContext.success();
+          }
+
         } catch (Exception e) {
           Log.d("GoogleMaps", "------->error");
           callbackContext.error(e.getMessage());
