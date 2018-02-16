@@ -239,7 +239,7 @@ function createStubs() {
     setTimeout(loadScript, 400);
 
     return {
-        GoogleMaps: {
+        CordovaGoogleMaps: {
             isAvailable: function() {
                 return mapInit["mapinitialized"];
             },
@@ -347,50 +347,21 @@ function createStubs() {
                 } else {
                     throw new Error("Unknown method " + calledMethod); 
                 }
-            }
-        },
-        External: {
-            launchNavigation: function(params) {
-
-                if (!directionsMap) {
-                    directionsMapView = initOpenMapForDirections();
-                    directionsService = new google.maps.DirectionsService();
-                    directionsDisplay = new google.maps.DirectionsRenderer();
-                    directionsMap = new google.maps.Map(directionsMapView[0]);
-                    directionsDisplay.setMap(directionsMap);
-                } else {
-                    wrapBackButton();
-                }
-
-                var request = {
-                    origin: params.from,
-                    destination: params.to,
-                    travelMode: google.maps.TravelMode.DRIVING
-                };
-
-                directionsService.route(request, function(response, status) {
-                    if (status == google.maps.DirectionsStatus.OK) {
-                        directionsDisplay.setDirections(response);
-                    }
-                });
-
-                /* User clicks 'back' button */
-                $('#platform-events-fire-back-map').click(function(e) {
-
-                    /* Restores original 'back' button */
-                    $('#platform-events-fire-back-map').remove();
-                    $('#platform-events-fire-back').css("display", "initial");
-
-                    directionsMapView.hide('slide', {
-                        direction: 'left',
-                        duration: 250
-                    });
-                });
-
-                directionsMapView.show('slide', {
-                    direction: 'right',
-                    duration: 250
-                });
+            },
+            pause: function(){
+            	console.log("[CordovaGoogleMaps] pause");
+            },
+            pauseResizeTimer: function(){
+            	console.log("[CordovaGoogleMaps] pauseResizeTimer");
+            },
+            resume: function(){
+            	console.log("[CordovaGoogleMaps] resume");
+            },
+            resumeResizeTimer: function(){
+            	console.log("[CordovaGoogleMaps] resumeResizeTimer");
+            },
+            putHtmlElements: function(finalDomPositions){
+            	console.log("[CordovaGoogleMaps] putHtmlElements(" + finalDomPositions + ")");
             }
         },
         Geocoder: {
