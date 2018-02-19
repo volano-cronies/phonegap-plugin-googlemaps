@@ -17,28 +17,28 @@ function createStubs() {
     /* Bug #10131 */
     var curCenter = null;
 
-    function initOpenMapForDirections(params) {
+    //function initOpenMapForDirections(params) {
+    //
+    //    $('#directions-map-canvas').remove();
+    //
+    //    wrapBackButton();
+    //
+    //    var viewMapTemplate = [
+    //            "<section id=\"directions-map-canvas\" style=\"display:none; width:100%; height:100%; position: absolute;\">",
+    //            "</section>" ].join("\n");
+    //
+    //    var viewMap = $(viewMapTemplate);
+    //    $('#overlay-views').append(viewMap);
+    //    return viewMap;
+    //}
 
-        $('#directions-map-canvas').remove();
-
-        wrapBackButton();
-
-        var viewMapTemplate = [
-                "<section id=\"directions-map-canvas\" style=\"display:none; width:100%; height:100%; position: absolute;\">",
-                "</section>" ].join("\n");
-
-        var viewMap = $(viewMapTemplate);
-        $('#overlay-views').append(viewMap);
-        return viewMap;
-    }
-
-    function wrapBackButton() {/* Creates fake 'back' button and hides the original one */
-        $('#platform-events-fire-back').css("display", "none");
-        $('#platform-events-fire-suspend')
-                .before(
-                        "<button id=\"platform-events-fire-back-map\" class=\"ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only\"><span class=\"ui-button-text\">Back</span></button>");
-        $('#platform-events-fire-back-map').css("width", "90px");
-    }
+    //function wrapBackButton() {/* Creates fake 'back' button and hides the original one */
+    //    $('#platform-events-fire-back').css("display", "none");
+    //    $('#platform-events-fire-suspend')
+    //            .before(
+    //                    "<button id=\"platform-events-fire-back-map\" class=\"ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only\"><span class=\"ui-button-text\">Back</span></button>");
+    //    $('#platform-events-fire-back-map').css("width", "90px");
+    //}
 
     function initMapDiv() {
 
@@ -362,6 +362,9 @@ function createStubs() {
             },
             putHtmlElements: function(finalDomPositions){
             	console.log("[CordovaGoogleMaps] putHtmlElements(" + finalDomPositions + ")");
+            },
+            backHistory: function(){
+            	console.log("[CordovaGoogleMaps] backHistory");
             }
         },
         Geocoder: {
