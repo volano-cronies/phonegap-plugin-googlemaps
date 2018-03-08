@@ -18,20 +18,8 @@ function createStubs() {
     var curCenter = null;
 
     function initMapDiv() {
-    	
-        $('#map-canvas').remove();
-
-        var viewMapTemplate = [
-                //"<section id=\"map-window\" style=\"z-index:0;display:none; width:100%; height:100%; position: absolute;\">",
-                "<section id=\"map-canvas\" style=\"display:none; width:100%; height:100%; position: absolute;\">",
-                //"<div id=\"map-canvas\" style=\"position: absolute; width: 100%; height: 100%;\">", "</div>",
-                //"</div>",
-                "</section>"].join("\n");
-
-        var viewMap = $(viewMapTemplate);
-        $('#overlay-views').append(viewMap);
-        //$('#overlay-views').parent().css("z-index", 1);
-        return viewMap;
+    	var wrMap = $($("iframe#document")[0].contentDocument).find("wr-map");
+        return wrMap;
     }
 
     function setDimension(dim) {
@@ -86,8 +74,10 @@ function createStubs() {
 	    }
     }
 
-    function onMarkerEvent(eventName, id) {
-        plugin.google.maps.Map._onMarkerEvent(eventName, id);
+    function onMarkerEvent(eventName, id, position) {
+    	var wrMap = $($("iframe#document")[0].contentDocument).find("wr-map");
+    	var map = plugin.google.maps.Map.getMap(wrMap[0]);
+        map._onMarkerEvent(eventName, id, position);
     }
 
 	function log() {
@@ -97,7 +87,11 @@ function createStubs() {
     }
     
     var Map = {
-        "moveCamera": function(options) {
+        "moveCamera": function() {
+        	var successCallback = arguments[0];
+            var errorCallback = arguments[1];
+        	var options = arguments[2][0];
+        	
             map.setZoom(options.zoom);
             if (options.target) {
                 if (options.target.length) {
@@ -108,6 +102,8 @@ function createStubs() {
                     map.setCenter(curCenter);
                 }
             }
+            
+            successCallback();
         },
         "getCameraPosition" : function() {
             return {
@@ -116,28 +112,65 @@ function createStubs() {
         	};
 		},
         "clear": function() {
+            var successCallback = arguments[0];
+            var errorCallback = arguments[1];
+
             markers.forEach(function(marker) {
                 marker.setMap(null);
             });
             markers = [];
             markersId = [];
             infoWindows = [];
+
+            successCallback();
         },
 		"resizeMap": function() {
+			var successCallback = arguments[0];
+			var errorCallback = arguments[1];
+			
 			var dim = arguments[2];
-			if (dim && dim.width && width.height)
+			if (dim && dim.width && dim.height)
             	setDimension(dim);
+            
+            successCallback();
         },
         "setDiv": function(dim) {
-            setDimension(dim);
-            var elements = window.document.elementsFromPoint(dim.left, dim.top);
-            var wrMap = $(elements).find("._gmaps_cdv_").get(0);
-            wrMap.addEventListener("mouseover", function(e) {
-                window.frameElement.style.pointerEvents = "none";
-            });
-
+            var successCallback = arguments[0];
+			var errorCallback = arguments[1];
+			
             mapView.show();
             mapView[0].style.background = "transparent";
+            
+            successCallback();
+        },
+        "setVisible": function() {
+        	var isVisible = arguments[2][0];
+            if (isVisible) {
+                mapView.show();
+                mapView[0].style.background = "transparent";
+            } else {
+                mapView.hide();
+                window.frameElement.style.background = "";
+                window.frameElement.style.pointerEvents = "";
+            }
+        },
+        "loadPlugin": function(){
+        	var successCallback = arguments[0];
+        	var errorCallback = arguments[1];
+        	var params = arguments[2];
+        	
+        	var pluginName = params[0];
+        	var pluginOptions = params[1];
+        	
+        	var result = {};
+        	if (pluginName === "Marker"){
+        		result = Marker.createMarker(pluginOptions);
+        	}
+        	
+        	successCallback(result);
+        },
+        "setActiveMarkerId": function(){
+        	log("setActiveMarkerId");
         }
     };
 
@@ -160,11 +193,15 @@ function createStubs() {
             });
             google.maps.event.addListener(marker, 'click', function() {
                 infoWindow.open(map, marker);
-                onMarkerEvent(plugin.google.maps.event.MARKER_CLICK, uuid)
+                var position = {
+                	"lat": marker.position.lat(),
+                	"lng": marker.position.lng()
+                };
+                onMarkerEvent(plugin.google.maps.event.MARKER_CLICK, uuid, position)
             });
 
             google.maps.event.addDomListener(contentString[0], "click", function(event) {
-                onMarkerEvent(plugin.google.maps.event.INFO_CLICK, uuid);
+                onMarkerEvent(plugin.google.maps.event.INFO_CLICK, uuid, {});
                 infoWindow.close();
             });
 
@@ -221,7 +258,15 @@ function createStubs() {
                 };
             }
         },
-        "setPosition": function(id, lat, lng) {
+        "setPosition": function() {
+        	var successCallback = arguments[0];
+        	var errorCallback = arguments[1];
+        	var params = arguments[2];
+        	
+        	var id = params[0];
+        	var lat = params[1];
+        	var lng = params[2];
+        	
             var index = markersId.indexOf(id);
             if (index >= 0) {
                 var marker = markers[index];
@@ -230,8 +275,10 @@ function createStubs() {
                 marker.setPosition(pos);
                 infoWindow.setPosition(pos);
             }
+        },
+        "showInfoWindow": function(){
+        	log("showInfoWindow");
         }
-
     }
 
     window.top["gmapinitialize"] = function() {
@@ -262,12 +309,29 @@ function createStubs() {
                 	var mapOptions = arguments[1];
 					var bridge = getRippleCordovaBridge();
 					bridge.add(mapId, Map);
+					bridge.add(mapId + "-marker", Marker);
                     mapInit["mappromise"].then(function() {
                         mapView = initMapDiv();
                         map = new google.maps.Map(mapView[0], mapOptions);
                         mapView.mouseleave(function(e) {
                             window.frameElement.style.pointerEvents = "";
                         });
+                        if (mapOptions.center === undefined){
+                        	navigator.geolocation.getCurrentPosition(
+                        		function(result){
+                        			var center = {
+                        				"lat": result.coords.latitude,
+                        				"lng": result.coords.longitude
+                        			};
+                        			map.setCenter(center);
+                        		}, 
+                        		function(error){
+                        			console.log(error);
+                        		});
+                        }
+                        if (mapOptions.zoom === undefined){
+                        	map.setZoom(10);
+                        }
                     });
                 } else {
                     map.setOptions(options);
@@ -363,7 +427,25 @@ function createStubs() {
             	log("resumeResizeTimer");
             },
             putHtmlElements: function(finalDomPositions){
+            	/*
             	log("putHtmlElements(" + finalDomPositions + ")");
+            	for (var key in finalDomPositions) {
+				    if (finalDomPositions.hasOwnProperty(key)) {
+				        var element = finalDomPositions[key];
+	            		var elemId = element.size.elemId;
+	            		var elem = $($("iframe#document")[0].contentDocument).find("[__plugindomid='" + elemId + "']");
+	            		if (elem.length > 0 && elem[0].style != undefined){
+		            		elem[0].style.setProperty("top", element.size.top);
+		            		elem[0].style.setProperty("left", element.size.left);
+		            		elem[0].style.setProperty("bottom", element.size.bottom);
+		            		elem[0].style.setProperty("right", element.size.right);
+		            		elem[0].style.setProperty("width", element.size.width + "px");
+		            		elem[0].style.setProperty("height", element.size.height + "px");
+		            		elem[0].style.setProperty("z-index", element.zIndex);
+		            	}
+				    }
+				}
+				*/
             },
             backHistory: function(){
             	log("backHistory");
@@ -373,6 +455,8 @@ function createStubs() {
             geocode: function(address) {
                 geocoder = new google.maps.Geocoder();
 
+				delete address.idx; // otherwise google maps service complains about unknown attribute 'idx'
+				
                 var geocoderPromise = new Promise(function(resolve, reject) {
                     geocoder.geocode(address, function(results, status) {
 
@@ -394,7 +478,10 @@ function createStubs() {
                 })
 
                 return geocoderPromise.then(function(position) {
-                    return position;
+                	var result = {};
+                	result.results = position;
+                	
+                    return result;
                 }, function(e) {
                     log(e);
                 });
