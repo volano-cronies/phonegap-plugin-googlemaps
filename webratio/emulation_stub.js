@@ -144,6 +144,9 @@ function createStubs() {
             successCallback();
         },
         "setVisible": function() {
+        	var successCallback = arguments[0];
+			var errorCallback = arguments[1];
+			
         	var isVisible = arguments[2][0];
             if (isVisible) {
                 mapView.show();
@@ -153,6 +156,8 @@ function createStubs() {
                 window.frameElement.style.background = "";
                 window.frameElement.style.pointerEvents = "";
             }
+            
+            successCallback();
         },
         "loadPlugin": function(){
         	var successCallback = arguments[0];
@@ -170,7 +175,9 @@ function createStubs() {
         	successCallback(result);
         },
         "setActiveMarkerId": function(){
-        	log("setActiveMarkerId");
+        	var markerId = arguments[2][0];
+			
+        	log("setActiveMarkerId = " + markerId);
         }
     };
 
@@ -213,7 +220,11 @@ function createStubs() {
                 "id": uuid
             };
         },
-        "remove": function(id) {
+        "remove": function() {
+        	var successCallback = arguments[0];
+        	var errorCallback = arguments[1];
+        	var id = arguments[2][0];
+        	
             var index = markersId.indexOf(id);
             if (index >= 0) {
                 var marker = markers[index];
@@ -225,6 +236,8 @@ function createStubs() {
                 markersId.splice(index, 1);
                 infoWindows.splice(index, 1);
             }
+            
+            successCallback();
         },
         "setTitle": function(id, title) {
             if (markersId.indexOf(id) >= 0) {
@@ -275,9 +288,17 @@ function createStubs() {
                 marker.setPosition(pos);
                 infoWindow.setPosition(pos);
             }
+            
+            successCallback();
         },
         "showInfoWindow": function(){
-        	log("showInfoWindow");
+        	var successCallback = arguments[0];
+        	var errorCallback = arguments[1];
+        	var id = arguments[2][0];
+        	
+        	log("showInfoWindow " + id);
+        	
+        	successCallback();
         }
     }
 
@@ -294,6 +315,8 @@ function createStubs() {
         mapInit["resolve"] = resolve;
     });
 
+	window.top["gmaps"] = {};
+	
     setTimeout(loadScript, 400);
 
     return {
@@ -302,10 +325,10 @@ function createStubs() {
                 return mapInit["mapinitialized"];
             },
             getMap: function(options) {
-
-                if (!map) {
+				var mapId = arguments[0];
+				map = window.top["gmaps"][mapId];
+				if (!map) {
                 	// register the runtime map instance as new ripple service
-                	var mapId = arguments[0];
                 	var mapOptions = arguments[1];
 					var bridge = getRippleCordovaBridge();
 					bridge.add(mapId, Map);
@@ -332,10 +355,15 @@ function createStubs() {
                         if (mapOptions.zoom === undefined){
                         	map.setZoom(10);
                         }
+                        window.top["gmaps"][mapId] = map;
                     });
                 } else {
                     map.setOptions(options);
                 }
+            },
+            removeMap: function() {
+            	var mapId = arguments[0];
+            	delete window.top["gmaps"][mapId];
             },
             setVisible: function(isVisible) {
                 if (isVisible) {
@@ -427,25 +455,7 @@ function createStubs() {
             	log("resumeResizeTimer");
             },
             putHtmlElements: function(finalDomPositions){
-            	/*
-            	log("putHtmlElements(" + finalDomPositions + ")");
-            	for (var key in finalDomPositions) {
-				    if (finalDomPositions.hasOwnProperty(key)) {
-				        var element = finalDomPositions[key];
-	            		var elemId = element.size.elemId;
-	            		var elem = $($("iframe#document")[0].contentDocument).find("[__plugindomid='" + elemId + "']");
-	            		if (elem.length > 0 && elem[0].style != undefined){
-		            		elem[0].style.setProperty("top", element.size.top);
-		            		elem[0].style.setProperty("left", element.size.left);
-		            		elem[0].style.setProperty("bottom", element.size.bottom);
-		            		elem[0].style.setProperty("right", element.size.right);
-		            		elem[0].style.setProperty("width", element.size.width + "px");
-		            		elem[0].style.setProperty("height", element.size.height + "px");
-		            		elem[0].style.setProperty("z-index", element.zIndex);
-		            	}
-				    }
-				}
-				*/
+
             },
             backHistory: function(){
             	log("backHistory");

@@ -569,9 +569,9 @@ if (!cordova) {
         _org_removeEventListener.apply(this, args);
         return;
       }
-      if (anotherBackbuttonHandler === callback) {
-        anotherBackbuttonHandler = null;
-      }
+      //if (anotherBackbuttonHandler === callback) {
+      //  anotherBackbuttonHandler = null;
+      //}
     };
 
   }());
