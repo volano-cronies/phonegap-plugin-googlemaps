@@ -620,14 +620,16 @@ if (!cordova) {
             var map = new Map(mapId, execCmd);
 
             // Catch all events for this map instance, then pass to the instance.
-            document.addEventListener(mapId, nativeCallback.bind(map));
+			// WR #12501 - make sure that when remove the map, the actual listener is removed
+            var ncFunction = nativeCallback.bind(map);
+            document.addEventListener(mapId, ncFunction);
             /*
                     map.showDialog = function() {
                       showDialog(mapId).bind(map);
                     };
             */
             map.one('remove', function() {
-                document.removeEventListener(mapId, nativeCallback);
+                document.removeEventListener(mapId, ncFunction);
                 MAPS[mapId].destroy();
                 delete MAPS[mapId];
                 map = undefined;

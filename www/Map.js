@@ -185,14 +185,25 @@ Map.prototype.getMap = function(mapId, div, options) {
       //------------------------------------------------------------------------
       // In order to work map.getVisibleRegion() correctly, wait a little.
       //------------------------------------------------------------------------
-      setTimeout(function() {
-        Object.defineProperty(self, "_isReady", {
-            value: true,
-            writable: false
-        });
-        self.refreshLayout();
-        self.trigger(event.MAP_READY, self);
-      }, 250);
+	  var waitCnt = 0;
+	  var waitCameraSync = function() {
+		if (!self.getVisibleRegion() && (waitCnt++ < 10)) {
+			setTimeout(function() {
+				waitCameraSync();
+			}, 100);
+		return;
+		}
+
+		Object.defineProperty(self, "_isReady", {
+			value: true,
+			writable: false
+		});
+		self.refreshLayout();
+		self.trigger(event.MAP_READY, self);
+	  };
+	  setTimeout(function() {
+		waitCameraSync();
+	  }, 100);
     }, self.errorHandler, 'CordovaGoogleMaps', 'getMap', args, {sync: true});
 };
 
@@ -666,7 +677,7 @@ Map.prototype.setDiv = function(div) {
 Map.prototype.getVisibleRegion = function(callback) {
   var self = this;
   var cameraPosition = self.get("camera");
-  if (!cameraPosition) {
+  if (!cameraPosition || !cameraPosition.southwest || !cameraPosition.northeast) {
     return null;
   }
 
@@ -1362,34 +1373,36 @@ Map.prototype.addMarkerCluster = function(markerClusterOptions, callback) {
   exec.call(this, function(result) {
 
     var markerMap = {};
-    result.geocellList.forEach(function(geocell, idx) {
-      var markerOptions = markerClusterOptions.markers[idx];
-      markerOptions = common.markerOptionsFilter(markerOptions);
+	if (result.geocellList != null) {
+		result.geocellList.forEach(function(geocell, idx) {
+		  var markerOptions = markerClusterOptions.markers[idx];
+		  markerOptions = common.markerOptionsFilter(markerOptions);
 
-      var markerId = markerOptions.id || "marker_" + idx;
-      //markerId = result.id + "-" + markerId;
-      markerOptions.id = markerId;
-      markerOptions._cluster = {
-        isRemoved: false,
-        isAdded: false,
-        geocell: geocell,
-        _marker: null
-      };
-/*
-      var marker = new Marker(self, markerId, markerOptions, "MarkerCluster", exec);
-      marker.set("isAdded", false, true);
-      marker.set("geocell", geocell, true);
-      marker.set("position", markerOptions.position, true);
-      marker.getId = function() {
-        return result.id + "-" + markerId;
-      };
-*/
-      markerMap[markerId] = markerOptions;
+		  var markerId = markerOptions.id || "marker_" + idx;
+		  //markerId = result.id + "-" + markerId;
+		  markerOptions.id = markerId;
+		  markerOptions._cluster = {
+			isRemoved: false,
+			isAdded: false,
+			geocell: geocell,
+			_marker: null
+		  };
+	/*
+		  var marker = new Marker(self, markerId, markerOptions, "MarkerCluster", exec);
+		  marker.set("isAdded", false, true);
+		  marker.set("geocell", geocell, true);
+		  marker.set("position", markerOptions.position, true);
+		  marker.getId = function() {
+			return result.id + "-" + markerId;
+		  };
+	*/
+		  markerMap[markerId] = markerOptions;
 
-      //self.MARKERS[marker.getId()] = marker;
-      //self.OVERLAYS[marker.getId()] = marker;
-    });
-
+		  //self.MARKERS[marker.getId()] = marker;
+		  //self.OVERLAYS[marker.getId()] = marker;
+		});
+	}
+	
     var markerCluster = new MarkerCluster(self, result.id, {
       "icons": markerClusterOptions.icons,
       "markerMap": markerMap,

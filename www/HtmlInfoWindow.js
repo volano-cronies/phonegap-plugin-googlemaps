@@ -11,6 +11,8 @@ var HTMLInfoWindow = function() {
     BaseClass.apply(self);
     var zoomScale = parseFloat(window.devicePixelRatio);
 
+	// WR #12501 - make sure that close method actually closes this infowindow
+	self.close = self.close.bind(self);
 
     var frame = document.createElement("div");
     frame.style.overflow="visible";

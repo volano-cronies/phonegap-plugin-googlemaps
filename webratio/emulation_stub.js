@@ -13,6 +13,9 @@ function createStubs() {
     var markersId = [];
     var infoWindows = [];
     var lastBound = null;
+    var clusterMarkers = [];
+    var clusterMarkersId = [];
+    var clusterMarkersEventListeners = {};
     
     /* Bug #10131 */
     var curCenter = null;
@@ -77,7 +80,14 @@ function createStubs() {
     function onMarkerEvent(eventName, id, position) {
     	var wrMap = $($("iframe#document")[0].contentDocument).find("wr-map");
     	var map = plugin.google.maps.Map.getMap(wrMap[0]);
-        map._onMarkerEvent(eventName, id, position);
+        var mapElement = $( map.getDiv() );
+		var mapId = mapElement[0].getAttribute("__pluginmapid");
+		if(window.cordova){
+			var params = [
+				id, new plugin.google.maps.LatLng(position.lat, position.lng)
+			];
+			cordova.fireDocumentEvent(mapId, {evtName: eventName, callback:'_onMarkerEvent', args:params});
+		}
     }
 
 	function log() {
@@ -87,6 +97,23 @@ function createStubs() {
     }
     
     var Map = {
+		"animateCamera": function() {
+			var successCallback = arguments[0];
+            var errorCallback = arguments[1];
+        	var options = arguments[2][0];
+        	
+            if (options.target) {
+                if (options.target.length) {
+                    fitBounds(options.target)
+                } else {
+                    /* Bug #10131 */
+                    curCenter = options.target;
+                    map.setCenter(curCenter);
+                }
+            }
+			Map.cameraEventCallback();
+            successCallback();
+		},
         "moveCamera": function() {
         	var successCallback = arguments[0];
             var errorCallback = arguments[1];
@@ -102,7 +129,7 @@ function createStubs() {
                     map.setCenter(curCenter);
                 }
             }
-            
+			Map.cameraEventCallback();
             successCallback();
         },
         "getCameraPosition" : function() {
@@ -111,6 +138,16 @@ function createStubs() {
                 "tilt": map.getTilt()
         	};
 		},
+		"setCameraZoom": function(){
+			var successCallback = arguments[0];
+            var errorCallback = arguments[1];
+			var zoom = arguments[2][0];
+			
+			map.setZoom(zoom);
+			
+			Map.cameraEventCallback();
+            successCallback();
+		},
         "clear": function() {
             var successCallback = arguments[0];
             var errorCallback = arguments[1];
@@ -118,10 +155,15 @@ function createStubs() {
             markers.forEach(function(marker) {
                 marker.setMap(null);
             });
+            clusterMarkers.forEach(function(clusterMarker) {
+                clusterMarker.setMap(null);
+            });
             markers = [];
             markersId = [];
             infoWindows = [];
-
+			clusterMarkers = [];
+			clusterMarkersId = [];
+			
             successCallback();
         },
 		"resizeMap": function() {
@@ -170,7 +212,9 @@ function createStubs() {
         	var result = {};
         	if (pluginName === "Marker"){
         		result = Marker.createMarker(pluginOptions);
-        	}
+        	} else if (pluginName === "MarkerCluster"){
+				result = MarkerCluster.createMarkerCluster(pluginOptions);
+			}
         	
         	successCallback(result);
         },
@@ -178,20 +222,78 @@ function createStubs() {
         	var markerId = arguments[2][0];
 			
         	log("setActiveMarkerId = " + markerId);
-        }
+        },
+        "fromLatLngToPoint": function(){
+        	var successCallback = arguments[0];
+        	var errorCallback = arguments[1];
+        	var lat = arguments[2][0];
+        	var lng = arguments[2][1];
+        	
+        	log("fromLatLngToPoint - " + lat + ", " + lng);
+        	
+        	successCallback([0, 0]);
+        },
+		"setOptions": function(){
+			log("setOptions");
+		},
+		"cameraEventCallback": function() {
+			var params = {
+				"bearing": map.getHeading(),
+                "zoom": map.getZoom(),
+                "tilt": map.getTilt(),
+				"target": {
+					"lat": map.getCenter().lat(),
+					"lng": map.getCenter().lng()
+				},
+				"northeast": {
+					"lat": map.getBounds().getNorthEast().lat(),
+					"lng": map.getBounds().getNorthEast().lng()
+				},
+				"southwest": {
+					"lat": map.getBounds().getSouthWest().lat(),
+					"lng": map.getBounds().getSouthWest().lng()
+				},
+				"nearLeft": {
+					"lat": map.getBounds().getSouthWest().lat(),
+					"lng": map.getBounds().getSouthWest().lng()
+				},
+				"nearRight": {
+					"lat": map.getBounds().getNorthEast().lat(),
+					"lng": map.getBounds().getNorthEast().lng()
+				},
+				"farLeft": {
+					"lat": map.getBounds().getSouthWest().lat(),
+					"lng": map.getBounds().getSouthWest().lng()
+				},
+				"farRight": {
+					"lat": map.getBounds().getNorthEast().lat(),
+					"lng": map.getBounds().getNorthEast().lng()
+				}
+			};
+			
+			var projection = map.getProjection();
+			var mapElement = $( map.getDiv() );
+			var mapId = mapElement[0].getAttribute("__pluginmapid");
+			if(window.cordova){
+				cordova.fireDocumentEvent(mapId, {evtName:'camera_move_end', callback:'_onCameraEvent', args: [params]});
+			}
+		}
     };
 
     var Marker = {
         "createMarker": function(options) {
-            var uuid = generateUUID();
+            var uuid = options.id || generateUUID();
             var newOptions = {
                 "title": options.title,
-                "position": new google.maps.LatLng(options.position.lat, options.position.lng)
+                "position": new google.maps.LatLng(options.position.lat, options.position.lng),
+				"icon": options.icon
             }
             var marker = new google.maps.Marker(newOptions);
 
             var contentString = $("<div style=\"cursor: pointer\"><strong>" + (options.title || "") + "</strong></div>");
-            if (options.snippet) {
+			if (options.html){
+				contentString.append($(options.html));
+			} else if (options.snippet) {
                 contentString.append($("<p>" + options.snippet + "</p>)"));
             }
 
@@ -208,7 +310,11 @@ function createStubs() {
             });
 
             google.maps.event.addDomListener(contentString[0], "click", function(event) {
-                onMarkerEvent(plugin.google.maps.event.INFO_CLICK, uuid, {});
+                var position = {
+                	"lat": marker.position.lat(),
+                	"lng": marker.position.lng()
+                };
+				onMarkerEvent(plugin.google.maps.event.INFO_CLICK, uuid, position);
                 infoWindow.close();
             });
 
@@ -299,9 +405,183 @@ function createStubs() {
         	log("showInfoWindow " + id);
         	
         	successCallback();
+        },
+        "setIcon": function(){
+        	var successCallback = arguments[0];
+        	var errorCallback = arguments[1];
+        	var id = arguments[2][0];
+        	var newIconUrl = arguments[2][1];
+        	
+        	log("setIcon - " + id + ", " + newIconUrl);
+        	
+        	var index = markersId.indexOf(id);
+            if (index >= 0) {
+                var marker = markers[index];
+                marker.setIcon(newIconUrl);
+            }
+                
+        	successCallback();
         }
-    }
+    };
 
+	var MarkerCluster = {
+		"createMarkerCluster": function(options) {
+			var uuid = generateUUID();
+			var id = "markercluster_" + uuid;
+			var positionList = options.positionList;
+			var geocellList = [];
+			for (var i = 0; i < positionList.length; i++) {
+				position = positionList[i];
+				geocellList.push(MarkerCluster.getGeocell(position.lat, position.lng, 12));
+			}
+			
+			var zoomChangedHandler = google.maps.event.addListener(map, 'zoom_changed', function() {
+				Map.cameraEventCallback();
+			});
+			var boundsChangedHandler = google.maps.event.addListener(map, 'bounds_changed', function() {
+				Map.cameraEventCallback();
+			});
+			
+			clusterMarkersEventListeners = {
+				"id": id,
+				"zoom_changed": zoomChangedHandler,
+				"bounds_changed": boundsChangedHandler
+			}; 
+			
+			return {
+				"geocellList": geocellList,
+				"hashCode": uuid,
+				"id": id
+			};
+		},
+		"getGeocell": function(lat, lng, resolution) {
+			var GEOCELL_GRID_SIZE = 4;
+			var GEOCELL_ALPHABET = "0123456789abcdef";
+
+			var cell = "";
+			var north = 90.0;
+			var south = -90.0;
+			var east = 180.0;
+			var west = -180.0;
+			var subcell_lng_span, subcell_lat_span;
+			var x, y;
+			while(cell.length < resolution + 1) {
+			  subcell_lng_span = (east - west) / GEOCELL_GRID_SIZE;
+			  subcell_lat_span = (north - south) / GEOCELL_GRID_SIZE;
+
+			  x = Math.min(Math.floor(GEOCELL_GRID_SIZE * (lng - west) / (east - west)), GEOCELL_GRID_SIZE - 1);
+			  y = Math.min(Math.floor(GEOCELL_GRID_SIZE * (lat - south) / (north - south)), GEOCELL_GRID_SIZE - 1);
+			  cell = cell.concat(GEOCELL_ALPHABET.charAt((y & 2) << 2 | (x & 2) << 1 | (y & 1) << 1 | (x & 1) << 0));
+
+			  south += subcell_lat_span * y;
+			  north = south + subcell_lat_span;
+
+			  west += subcell_lng_span * x;
+			  east = west + subcell_lng_span;
+			}
+			return cell;
+		},
+		"remove": function(){
+			var successCallback = arguments[0];
+        	var errorCallback = arguments[1];
+			var id = arguments[2][0];
+			
+			log("remove markerCluster " + id);
+			
+			google.maps.event.removeListener(clusterMarkersEventListeners.zoom_changed);
+			google.maps.event.removeListener(clusterMarkersEventListeners.bounds_changed);
+			
+			clusterMarkersEventListeners = {};
+			
+			successCallback();
+		},
+		"redrawClusters": function() {
+			var successCallback = arguments[0];
+        	var errorCallback = arguments[1];
+			var params = arguments[2];
+			
+			var mapMarkerClusterId = params[0];
+			var addOrUpdateMarkerClusters = params[1].new_or_update;
+			var deleteMarkerClusters = params[1].delete;
+			
+			log("redraw map cluster " + mapMarkerClusterId);
+			
+			for (var i = 0; i < addOrUpdateMarkerClusters.length; ++i){
+				if (addOrUpdateMarkerClusters[i].isClusterIcon){
+					MarkerCluster.addOrUpdateCluster(addOrUpdateMarkerClusters[i]);
+				} else {
+					Marker.createMarker(addOrUpdateMarkerClusters[i]);
+				}
+			}
+			
+			for (var i = 0; i < deleteMarkerClusters.length; ++i){
+				var id = deleteMarkerClusters[i];
+	        	if (clusterMarkersId.indexOf(id) >= 0) {
+					MarkerCluster.deleteCluster(id);
+				} else if (markersId.indexOf(id) >= 0) {
+					Marker.remove(function() {}, function() {}, [id]);
+				}
+			}
+			
+			successCallback();
+		},
+		"addOrUpdateCluster": function(options) {
+			var id = options.id;
+			if (clusterMarkersId.indexOf(id) >= 0) {
+			
+				log("update cluster marker " + id);
+				
+                var clusterMarker = clusterMarkers[clusterMarkersId.indexOf(id)];
+                
+                clusterMarker.setPoistion(new google.maps.LatLng(options.position.lat, options.position.lng));
+                clusterMarker.setLabel(options.count.toString());
+                clusterMarker.setIcon(options.icon.url);
+            } else {
+            
+            	log("add new cluster marker " + id);
+            
+	            var newOptions = {
+	                "label": options.count.toString(),
+	                "position": new google.maps.LatLng(options.position.lat, options.position.lng),
+	                "icon": options.icon.url
+	            }
+	            var clusterMarker = new google.maps.Marker(newOptions);
+	
+	            google.maps.event.addListener(clusterMarker, 'click', function() {
+	                log("cluster marker click " + id);
+	                if(window.cordova){
+	                	var marker = arguments[0];
+	                    var mapElement = $( map.getDiv() );
+						var mapId = mapElement[0].getAttribute("__pluginmapid");
+	                	var clusterId = clusterMarkersEventListeners.id;
+	                	
+	                	var params = [
+	                		clusterId, id, 
+	                		new plugin.google.maps.LatLng(marker.latLng.lat(), marker.latLng.lng())
+	                	];
+	                	cordova.fireDocumentEvent(mapId, {evtName: 'cluster_click', callback:'_onClusterEvent', args:params});
+					}
+	            });
+	
+	            clusterMarker.setMap(map);
+	            clusterMarkers.push(clusterMarker);
+	            clusterMarkersId.push(id);
+			}
+        },
+        "deleteCluster": function(id){
+        	var index = clusterMarkersId.indexOf(id);
+        	if (index >= 0) {
+        		log("delete cluster marker " + id);
+        		var clusterMarker = clusterMarkers[index];
+                clusterMarker.setMap(null);
+                clusterMarkers.splice(index, 1);
+                clusterMarkersId.splice(index, 1);
+                
+                google.maps.event.clearListeners(clusterMarker, 'click');
+        	}
+        }
+	};
+	
     window.top["gmapinitialize"] = function() {
         mapInit["mapinitialized"] = true;
         mapInit["resolve"]();
@@ -333,25 +613,34 @@ function createStubs() {
 					var bridge = getRippleCordovaBridge();
 					bridge.add(mapId, Map);
 					bridge.add(mapId + "-marker", Marker);
+					bridge.add(mapId + "-markercluster", MarkerCluster);
                     mapInit["mappromise"].then(function() {
                         mapView = initMapDiv();
                         map = new google.maps.Map(mapView[0], mapOptions);
                         mapView.mouseleave(function(e) {
                             window.frameElement.style.pointerEvents = "";
                         });
-                        if (mapOptions.center === undefined){
-                        	navigator.geolocation.getCurrentPosition(
-                        		function(result){
-                        			var center = {
-                        				"lat": result.coords.latitude,
-                        				"lng": result.coords.longitude
-                        			};
-                        			map.setCenter(center);
-                        		}, 
-                        		function(error){
-                        			console.log(error);
-                        		});
-                        }
+						navigator.geolocation.getCurrentPosition(
+							function(result){
+								var center = {
+									"lat": result.coords.latitude,
+									"lng": result.coords.longitude
+								};
+								if (mapOptions.center === undefined){
+									map.setCenter(center);
+								}
+								if (mapOptions.controls.myLocation){
+									Marker.createMarker({
+										position: center,
+										draggable: false,
+										icon: './MobileDefault/images/marker-my-location.png'
+									});
+								}
+							}, 
+							function(error){
+								console.log(error);
+							});
+                        
                         if (mapOptions.zoom === undefined){
                         	map.setZoom(10);
                         }

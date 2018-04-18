@@ -168,14 +168,20 @@ var MarkerCluster = function(map, markerClusterId, markerClusterOptions, _exec) 
     if (skipRedraw) {
       return;
     }
-    self.redraw(true);
+	// WR #12501 - fix for map redraw - see issue #2053 of master cordova-plugin-googlemaps
+    self.redraw({
+	  force: true
+	});
   };
   self.addMarkers = function(markers) {
     if (utils.isArray(markers) || Array.isArray(markers)) {
       for (var i = 0; i < markers.length; i++) {
         self.addMarker(markers[i], true);
       }
-      self.redraw(true);
+	  // WR #12501 - fix for map redraw - see issue #2053 of master cordova-plugin-googlemaps
+	  self.redraw({
+		force: true
+	  });
     }
   };
 
@@ -192,7 +198,10 @@ var MarkerCluster = function(map, markerClusterId, markerClusterOptions, _exec) 
     sel.redraw.call(self);
   });
 
-  self.redraw.call(self, true);
+  // WR #12501 - fix for map redraw - see issue #2053 of master cordova-plugin-googlemaps
+  self.redraw.call(self, {
+	force: true
+  });
 
   if (self.debug) {
     self.debugTimer = setInterval(function() {
@@ -440,20 +449,24 @@ MarkerCluster.prototype.redraw = function(params) {
       var taskParams = self.taskQueue.pop();
       self.taskQueue.length = 0;
       var visibleRegion = self.map.getVisibleRegion();
-      self._redraw.call(self, {
-        visibleRegion: visibleRegion,
-        force: taskParams.force
-      });
+	  if (visibleRegion != null){
+		  self._redraw.call(self, {
+			visibleRegion: visibleRegion,
+			force: taskParams.force
+		  });
+	  }
     });
   } else {
     var taskParams = self.taskQueue.pop();
     self.taskQueue.length = 0;
 
     var visibleRegion = self.map.getVisibleRegion();
-    self._redraw.call(self, {
-      visibleRegion: visibleRegion,
-      force: taskParams.force
-    });
+	if (visibleRegion != null){
+		self._redraw.call(self, {
+		  visibleRegion: visibleRegion,
+		  force: taskParams.force
+		});
+	}
   }
 };
 MarkerCluster.prototype._redraw = function(params) {

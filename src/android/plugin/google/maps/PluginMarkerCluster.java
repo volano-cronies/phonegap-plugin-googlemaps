@@ -20,14 +20,15 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Set;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class PluginMarkerCluster extends PluginMarker {
 
-  private final static ConcurrentHashMap<String, STATUS> pluginMarkers = new ConcurrentHashMap<String, STATUS>();
-  private final static ConcurrentHashMap<String, Integer> waitCntManager = new ConcurrentHashMap<String, Integer>();
-  private final static ConcurrentHashMap<String, Boolean> debugFlags = new ConcurrentHashMap<String, Boolean>();
+  // WR #12501 - fix exception when removing a marker - see issue #2093 of master cordova-plugin-googlemaps
+  private final static Map<String, STATUS> pluginMarkers = new ConcurrentHashMap<String, STATUS>();
+  private final static Map<String, Integer> waitCntManager = new ConcurrentHashMap<String, Integer>();
+  private final static Map<String, Boolean> debugFlags = new ConcurrentHashMap<String, Boolean>();
   private final static ArrayList<String> deleteMarkers = new ArrayList<String>();
 
   private final Object semaphore = new Object();
