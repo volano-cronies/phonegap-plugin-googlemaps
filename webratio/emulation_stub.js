@@ -16,14 +16,72 @@ function createStubs() {
     var clusterMarkers = [];
     var clusterMarkersId = [];
     var clusterMarkersEventListeners = {};
-    
+    var myLocationMarkerId = null;
+	
     /* Bug #10131 */
     var curCenter = null;
 
-    function initMapDiv() {
-    	var wrMap = $($("iframe#document")[0].contentDocument).find("wr-map");
-        return wrMap;
-    }
+	/**
+	 * The MyLocationControl adds a control to the map that recenters the map on device current location
+	 * This constructor takes the control DIV as an argument.
+	 * @constructor
+	 */
+	function MyLocationControl(controlDiv, map) {
+		
+		// control border.
+		var controlUI = document.createElement('div');
+		controlDiv.style.padding = '0px 10px 0px 0px';
+		controlDiv.appendChild(controlUI);
+		
+		//  control interior.
+		var controlButton = document.createElement('button');
+		controlButton.draggable = false;
+		controlButton.title = 'My location';
+		controlButton.type = 'button';
+		controlButton.style.background = 'none'; 
+		controlButton.style.display = 'block'; 
+		controlButton.style.border = '0px'; 
+		controlButton.style.margin = '0px'; 
+		controlButton.style.padding = '0px'; 
+		controlButton.style.position = 'relative'; 
+		controlButton.style.cursor = 'pointer'; 
+		controlButton.style.width = '28px'; 
+		controlButton.style.height = '27px'; 
+		controlButton.style.top = '0px'; 
+		controlButton.style.left = '0px';
+		controlUI.appendChild(controlButton);
+		
+		// button image
+		var controlImage = document.createElement('img');
+		controlImage.src = './MobileDefault/images/button-my-location.png';
+		controlImage.draggable = false; 
+		controlImage.style.position = 'absolute'; 
+		controlImage.style.left = '0px'; 
+		controlImage.style.top = '0px'; 
+		controlImage.style.border = '0px'; 
+		controlImage.style.padding = '0px'; 
+		controlImage.style.margin = '0px'; 
+		controlButton.appendChild(controlImage);
+		
+		// Setup the click event listeners
+		controlUI.addEventListener('click', function() {
+			if (navigator.geolocation) { 
+				navigator.geolocation.getCurrentPosition(function(pos) {
+					var me = new google.maps.LatLng(pos.coords.latitude, pos.coords.longitude);
+					map.setCenter(me);
+					map.setZoom(14);
+				}, function(error) {
+				
+				});
+			}
+		});
+		
+	}
+	
+	function initMapDiv() {
+		var wrMap = $($("iframe#document")[0].contentDocument).find("wr-map");
+		return wrMap;
+	}
 
     function setDimension(dim) {
         if (dim && mapView) {
@@ -151,16 +209,34 @@ function createStubs() {
         "clear": function() {
             var successCallback = arguments[0];
             var errorCallback = arguments[1];
-
-            markers.forEach(function(marker) {
-                marker.setMap(null);
-            });
+			var params = arguments[2];
+			
+			var fullClean = false;
+			if (typeof params === 'boolean'){
+				fullClean = params;
+			}
+			// take care of myLocation marker, if any
+			var survivorMarkers = [];
+			var survivorMarkersId = [];
+			var survivorInfoWindows = [];
+			for (var index = 0; index < markers.length; ++index){
+				var marker = markers[index];
+				var markerId = markersId[index];
+				var infoWindow = infoWindows[index];
+				if (!fullClean && markerId === myLocationMarkerId){
+					survivorMarkers.push(marker);
+					survivorMarkersId.push(markerId);
+					survivorInfoWindows.push(infoWindow);
+					continue;
+				}
+				marker.setMap(null);
+			}
             clusterMarkers.forEach(function(clusterMarker) {
                 clusterMarker.setMap(null);
             });
-            markers = [];
-            markersId = [];
-            infoWindows = [];
+            markers = survivorMarkers;
+            markersId = survivorMarkersId;
+            infoWindows = survivorInfoWindows;
 			clusterMarkers = [];
 			clusterMarkersId = [];
 			
@@ -651,6 +727,19 @@ function createStubs() {
                     mapInit["mappromise"].then(function() {
                         mapView = initMapDiv();
                         map = new google.maps.Map(mapView[0], mapOptions);
+						
+						// WR #12918
+						if (mapOptions.controls && mapOptions.controls.myLocation){
+							// Creates the DIV to hold the myLocation control and call the MyLocationControl()
+							// constructor passing in this DIV.
+							var myLocationControlDiv = document.createElement('div');
+							var myLocationControl = new MyLocationControl(myLocationControlDiv, map);
+							
+							myLocationControlDiv.index = 1;
+							map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(myLocationControlDiv);
+						}
+						// WR END
+						
                         mapView.mouseleave(function(e) {
                             window.frameElement.style.pointerEvents = "";
                         });
@@ -664,11 +753,17 @@ function createStubs() {
 									map.setCenter(center);
 								}
 								if (mapOptions.controls.myLocation){
-									Marker.createMarker({
+									if (myLocationMarkerId){
+										// there is already a my-location maker, so reset it
+										Map.clear(() => {}, () => {}, true);
+										myLocationMarkerId = null;
+									}
+									var myLocationMarkerInfo = Marker.createMarker({
 										position: center,
 										draggable: false,
 										icon: './MobileDefault/images/marker-my-location.png'
 									});
+									myLocationMarkerId = myLocationMarkerInfo.id;
 								}
 							}, 
 							function(error){
