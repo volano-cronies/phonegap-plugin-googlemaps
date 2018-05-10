@@ -631,6 +631,19 @@ function createStubs() {
 				if (!map) {
                 	// register the runtime map instance as new ripple service
                 	var mapOptions = arguments[1];
+					
+					// WR 12922
+					mapOptions.fullscreenControl = false;
+					// END WR
+					
+					// WR 12925
+					if (mapOptions.controls && mapOptions.controls.zoom){
+						mapOptions.zoomControl = mapOptions.controls.zoom;
+					} else {
+						mapOptions.zoomControl = false;
+					}
+					// WR END
+					
 					var bridge = getRippleCordovaBridge();
 					bridge.add(mapId, Map);
 					bridge.add(mapId + "-marker", Marker);
