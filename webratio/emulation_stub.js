@@ -91,9 +91,9 @@ function createStubs() {
     }
 
 	function log() {
-        var args = [].slice.call(arguments, 0);
-        args.unshift("[Google Maps]");
-        console.log.apply(console, args);
+        //var args = [].slice.call(arguments, 0);
+        //args.unshift("[Google Maps]");
+        //console.log.apply(console, args);
     }
     
     var Map = {
@@ -219,9 +219,13 @@ function createStubs() {
         	successCallback(result);
         },
         "setActiveMarkerId": function(){
-        	var markerId = arguments[2][0];
+			var successCallback = arguments[0];
+			var errorCallback = arguments[1];
+			var markerId = arguments[2][0];
 			
         	log("setActiveMarkerId = " + markerId);
+			
+			successCallback();
         },
         "fromLatLngToPoint": function(){
         	var successCallback = arguments[0];
@@ -406,6 +410,23 @@ function createStubs() {
         	
         	successCallback();
         },
+		"hideInfoWindow": function(){
+			var successCallback = arguments[0];
+			var errorCallback = arguments[1];
+			var id = arguments[2][0];
+			
+			log("hideInfoWindow " + id);
+			
+			var index = markersId.indexOf(id);
+			if (index >= 0) {
+				var infoWindow = infoWindows[index];
+				if (infoWindow){
+					infoWindow.close();
+				}
+			}
+			
+			successCallback();
+		},
         "setIcon": function(){
         	var successCallback = arguments[0];
         	var errorCallback = arguments[1];
