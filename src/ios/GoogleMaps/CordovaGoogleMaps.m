@@ -343,6 +343,39 @@
             [pluginMap getMap:command];
         });
 
+        // zoom control
+        NSNumber *zoomStr = [initOptions valueForKeyPath:@"controls.zoom"];
+        if (zoomStr.intValue > 0) {
+            int buttonBase = 64;
+            
+            // Check for the myLocation button to exist
+            NSNumber *myLocation = [initOptions valueForKeyPath:@"controls.myLocation"];
+            if (myLocation.intValue > 0){
+                // if there is the myLocation button, add its hieght to the baseline becuase
+                // it is going to be drawn always at the bottom on the view
+                buttonBase = buttonBase + 64;
+            }
+            // Zoom In button
+            UIButton *zoomInButton = [UIButton buttonWithType:UIButtonTypeRoundedRect];
+            zoomInButton.frame = CGRectMake(mapCtrl.map.bounds.size.width - 64, mapCtrl.map.bounds.size.height - (buttonBase + 64), 54, 54);
+            zoomInButton.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleTopMargin;
+            [zoomInButton setImage:[[UIImage imageNamed:@"ZoomIn.png"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal] forState:UIControlStateNormal];
+            [mapCtrl.map addSubview:zoomInButton];
+
+            // Add zoomIn handler - method is inside GoogleMapsViewController
+            [zoomInButton addTarget:mapCtrl action:@selector(didTapZoomInButton:) forControlEvents:UIControlEventTouchUpInside];
+            
+            // Zoom Out button
+            UIButton *zoomOutButton = [UIButton buttonWithType:UIButtonTypeRoundedRect];
+            zoomOutButton.frame = CGRectMake(mapCtrl.map.bounds.size.width - 64, mapCtrl.map.bounds.size.height - buttonBase, 54, 54);
+            zoomOutButton.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleTopMargin;
+            [zoomOutButton setImage:[[UIImage imageNamed:@"ZoomOut.png"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal] forState:UIControlStateNormal];
+            [mapCtrl.map addSubview:zoomOutButton];
+
+            // Add zoomOut handler - method is inside GoogleMapsViewController
+            [zoomOutButton addTarget:mapCtrl action:@selector(didTapZoomOutButton:) forControlEvents:UIControlEventTouchUpInside];
+
+        }
     });
 }
 

@@ -59,6 +59,26 @@
   return NO;
 }
 
+/**
+ * Called when the Zoom In button is tapped.
+ *
+ * @return nothing
+ */
+- (void) didTapZoomInButton:(UIButton *)button {
+    GMSCameraUpdate *cameraUpdate = [GMSCameraUpdate zoomTo:self.map.camera.zoom + 1];
+    [self.map animateWithCameraUpdate:cameraUpdate];
+}
+
+/**
+ * Called when the Zoom Out button is tapped.
+ *
+ * @return nothing
+ */
+- (void) didTapZoomOutButton:(UIButton *)button {
+    GMSCameraUpdate *cameraUpdate = [GMSCameraUpdate zoomTo:self.map.camera.zoom - 1];
+    [self.map animateWithCameraUpdate:cameraUpdate];
+}
+
 #pragma mark - GMSMapViewDelegate
 
 /**
