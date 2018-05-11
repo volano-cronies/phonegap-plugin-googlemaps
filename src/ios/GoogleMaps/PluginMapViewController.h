@@ -23,4 +23,6 @@
 - (BOOL)didTapMyLocationButtonForMapView:(GMSMapView *)mapView;
 - (void)didChangeActiveBuilding: (GMSIndoorBuilding *)building;
 - (void)didChangeActiveLevel: (GMSIndoorLevel *)level;
+- (void) didTapZoomInButton:(UIButton *)button;
+- (void) didTapZoomOutButton:(UIButton *)button;
 @end
