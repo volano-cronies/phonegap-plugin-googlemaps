@@ -5,10 +5,10 @@ function createStubs() {
     var google = null;
     var map = null;
     var mapView = null;
-    var directionsMapView = null;
-    directionsService = null;
-    directionsDisplay = null;
-    directionsMap = null;
+    //var directionsMapView = null;
+    //var directionsService = null;
+    //var directionsDisplay = null;
+    //var directionsMap = null;
     var markers = [];
     var markersId = [];
     var infoWindows = [];
@@ -128,7 +128,7 @@ function createStubs() {
     	if (window.top.google === undefined){
 	        var script = document.createElement('script');
 	        script.type = 'text/javascript';
-	        script.src = 'https://maps.googleapis.com/maps/api/js?v=3.exp' + '&callback=gmapinitialize';
+	        script.src = 'https://maps.googleapis.com/maps/api/js?v=3' + '&callback=gmapinitialize';
 	        $('body').append(script);
 	    } else {
 	    	log("google api already loaded");
