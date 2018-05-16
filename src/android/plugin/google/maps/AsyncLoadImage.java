@@ -58,12 +58,19 @@ public class AsyncLoadImage extends AsyncTask<Void, Void, AsyncLoadImage.AsyncLo
     String cacheKey;
   }
 
+  // WR #12955
   public AsyncLoadImage(CordovaInterface cordova, CordovaWebView webView, AsyncLoadImageOptions options, AsyncLoadImageInterface callback) {
+      this(cordova, webView, options, callback, null);
+  }
+  
+  public AsyncLoadImage(CordovaInterface cordova, CordovaWebView webView, AsyncLoadImageOptions options, AsyncLoadImageInterface callback, String currentPageUrl) {
     this.callback = callback;
     this.mOptions = options;
     this.webView = webView;
     this.cordova = cordova;
+    this.currentPageUrl = currentPageUrl;
   }
+  // WR END
 
   public static String getCacheKey(String url, int width, int height) {
     if (url == null) {
@@ -128,7 +135,11 @@ public class AsyncLoadImage extends AsyncTask<Void, Void, AsyncLoadImage.AsyncLo
       mOptions.url = PluginUtil.getAbsolutePathFromCDVFilePath(resourceApi, mOptions.url);
     }
 
-    this.currentPageUrl = CordovaGoogleMaps.CURRENT_URL; //webView.getUrl();
+    // WR #12955
+    if (this.currentPageUrl == null){
+        this.currentPageUrl = CordovaGoogleMaps.CURRENT_URL; // webView.getUrl();
+    }
+    // WR END
     //Log.d(TAG, "-->currentPageUrl = " + this.currentPageUrl);
 
     //View browserView = webView.getView();
