@@ -128,7 +128,7 @@ function createStubs() {
     	if (window.top.google === undefined){
 	        var script = document.createElement('script');
 	        script.type = 'text/javascript';
-	        script.src = 'https://maps.googleapis.com/maps/api/js?v=3' + '&callback=gmapinitialize';
+	        script.src = 'https://maps.googleapis.com/maps/api/js?v=3.31' + '&callback=gmapinitialize';
 	        $('body').append(script);
 	    } else {
 	    	log("google api already loaded");
