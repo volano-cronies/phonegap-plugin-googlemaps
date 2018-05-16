@@ -55,10 +55,15 @@ public class AsyncLoadImage extends AsyncTask<Void, Void, AsyncLoadImage.AsyncLo
   }
 
   public AsyncLoadImage(CordovaInterface cordova, CordovaWebView webView, AsyncLoadImageOptions options, AsyncLoadImageInterface callback) {
+    this(cordova, webView, options, callback, null);
+  }
+
+  public AsyncLoadImage(CordovaInterface cordova, CordovaWebView webView, AsyncLoadImageOptions options, AsyncLoadImageInterface callback, String currentPageUrl) {
     this.callback = callback;
     this.mOptions = options;
     this.webView = webView;
     this.cordova = cordova;
+    this.currentPageUrl = currentPageUrl;
   }
 
   public static String getCacheKey(String url, int width, int height) {
@@ -130,10 +135,12 @@ public class AsyncLoadImage extends AsyncTask<Void, Void, AsyncLoadImage.AsyncLo
       this.cancel(true);
       return;
     }
-    currentPage = currentPage.replaceAll("#.*$", "");
-    currentPage = currentPage.replaceAll("\\?.*$", "");
-    currentPage = currentPage.replaceAll("[^\\/]*$", "");
-    this.currentPageUrl = currentPage;
+    if (this.currentPageUrl == null) {
+      currentPage = currentPage.replaceAll("#.*$", "");
+      currentPage = currentPage.replaceAll("\\?.*$", "");
+      currentPage = currentPage.replaceAll("[^\\/]*$", "");
+      this.currentPageUrl = currentPage;
+    };
 
     //Log.d(TAG, "-->currentPageUrl = " + this.currentPageUrl);
 
