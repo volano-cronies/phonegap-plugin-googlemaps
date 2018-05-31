@@ -329,6 +329,9 @@ var HTMLInfoWindow = function() {
 
         cordova.fireDocumentEvent('plugin_touch', {});
     });
+	self.on(event.INFO_OPEN, function() {
+		anchorDiv.style.visibility = "visible";
+	});
     self.on(event.INFO_CLOSE, function() {
         isInfoOpenFired = false;
     });
