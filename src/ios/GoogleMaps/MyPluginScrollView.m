@@ -15,7 +15,10 @@
 {
   self = [super initWithFrame:aRect];
   self.debugView = [[MyPluginLayerDebugView alloc] initWithFrame:CGRectMake(0, 0, aRect.size.width, 5000)];
-  
+
+  if (@available(iOS 11, *)) {
+    self.contentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentNever;
+  }
   return self;
 }
 
