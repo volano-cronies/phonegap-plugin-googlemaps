@@ -628,7 +628,7 @@ public class PluginMap extends MyPlugin implements OnMarkerClickListener,
     Builder builder = CameraPosition.builder();
     builder.tilt(map.getCameraPosition().tilt);
     builder.bearing(map.getCameraPosition().bearing);
-    Log.d(TAG, mapView.getWidth() + "x" + mapView.getHeight());
+    //Log.d(TAG, mapView.getWidth() + "x" + mapView.getHeight());
 
     // Fit the camera to the cameraBounds with 20px padding.
     CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngBounds(cameraBounds, padding / (int)density);
@@ -1808,8 +1808,6 @@ public class PluginMap extends MyPlugin implements OnMarkerClickListener,
   public void setMyLocationEnabled(final JSONArray args, final CallbackContext callbackContext) throws JSONException {
 
     // Request geolocation permission.
-    boolean locationPermission = cordova.hasPermission("android.permission.ACCESS_COARSE_LOCATION");
-    //Log.d(TAG, "---> setMyLocationEnabled, hasPermission =  " + locationPermission);
     final JSONObject params = args.getJSONObject(0);
 
     boolean locationPermission = PermissionChecker.checkSelfPermission(cordova.getActivity(), Manifest.permission.ACCESS_COARSE_LOCATION) == PermissionChecker.PERMISSION_GRANTED;

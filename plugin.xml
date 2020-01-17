@@ -135,6 +135,8 @@
       Official document https://github.com/mapsplugin/cordova-plugin-googlemaps-doc/blob/master/v2.3.0/README.md Please consider to buy a beer for us 🍺 https://github.com/mapsplugin/cordova-plugin-googlemaps#buy-us-a-beer
     </info>
 
+	<preference name="GOOGLE_MAPS_ANDROID_API_KEY" />
+	
     <js-module name="googlemaps-cdv-plugin" src="www/plugin-loader-for-android_ios.js">
       <clobbers target="plugin.google.maps"/>
     </js-module>
@@ -228,11 +230,8 @@
     <resource-file src="src/android/frameworks/tbxml-android.aar" target="libs/tbxml-android.aar"/>
     <resource-file src="src/android/frameworks/tbxml-android.aar" target="app/src/libs/tbxml-android.aar"/>
 
-
-    <framework src="src/android/frameworks/apikey.gradle" custom="true" type="gradleReference"/>
-
     <config-file target="AndroidManifest.xml" parent="/manifest/application">
-      <meta-data android:name="com.google.android.geo.API_KEY" android:value="${GOOGLE_MAPS_ANDROID_API_KEY}"/>
+      <meta-data android:name="com.google.android.geo.API_KEY" android:value="$GOOGLE_MAPS_ANDROID_API_KEY"/>
       <!-- Google Play Services SDK -->
       <meta-data android:name="com.google.android.gms.version" android:value="@integer/google_play_services_version"/>
       <!-- for Android 9 or above -->
@@ -297,7 +296,7 @@
 
   <!-- ios -->
   <platform name="ios">
-
+    <preference name="GOOGLE_MAPS_IOS_API_KEY" />
     <preference name="LOCATION_WHEN_IN_USE_DESCRIPTION" default="This app wants to get your location while this app runs only."/>
     <preference name="LOCATION_ALWAYS_USAGE_DESCRIPTION" default="This app wants to get your location always, even this app runs in background."/>
 
@@ -449,6 +448,10 @@
     <resource-file src="assets/ios/ZoomIn.imageset/zoomin.png" target="Images.xcassets/ZoomIn.imageset/zoomin.png" />
     <resource-file src="assets/ios/ZoomOut.imageset/Contents.json" target="Images.xcassets/ZoomOut.imageset/Contents.json" />
     <resource-file src="assets/ios/ZoomOut.imageset/zoomout.png" target="Images.xcassets/ZoomOut.imageset/zoomout.png" />
+
+	<config-file target="*-Info.plist" parent="Google Maps API Key">
+		<string>$GOOGLE_MAPS_IOS_API_KEY</string>
+	</config-file>
 
     <config-file target="*-Info.plist" parent="NSLocationWhenInUseUsageDescription">
       <string>$LOCATION_WHEN_IN_USE_DESCRIPTION</string>

@@ -29,7 +29,8 @@ dispatch_queue_t queue;
       //-------------------------------
       NSString *errorMsg = nil;
 
-      NSString *APIKey = [((CDVViewController *)self.viewController).settings objectForKey:@"google_maps_ios_api_key"];
+      /* WR - Disable APIKey check because sent to the plugin as an old fashion variable
+	  NSString *APIKey = [((CDVViewController *)self.viewController).settings objectForKey:@"google_maps_ios_api_key"];
 
       if (APIKey == nil) {
         NSString *errorTitle = [PluginUtil PGM_LOCALIZATION:@"APIKEY_IS_UNDEFINED_TITLE"];
@@ -54,6 +55,7 @@ dispatch_queue_t queue;
                                         completion:nil];
         return;
       }
+      WR - END */
 
       /*---------------------------------------------------------------------------------------
        * If CFBundleExecutable is not English, the Google Maps SDK for iOS will crash.

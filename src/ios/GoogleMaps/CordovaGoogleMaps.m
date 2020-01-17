@@ -25,6 +25,7 @@
     //-------------------------------
     // Check the Google Maps API key
     //-------------------------------
+	/* WR - Disable APIKey check because sent to the plugin as an old fashion variable
     NSString *APIKey = [((CDVViewController *)self.viewController).settings objectForKey:@"google_maps_ios_api_key"];
 
     if (APIKey == nil) {
@@ -58,6 +59,7 @@
     [[UIDevice currentDevice] beginGeneratingDeviceOrientationNotifications];
 
     [GMSServices provideAPIKey:APIKey];
+	WR - END */
   }];
 
   //-------------------------------
@@ -383,25 +385,27 @@
         }
         // Zoom In button
         UIButton *zoomInButton = [UIButton buttonWithType:UIButtonTypeRoundedRect];
-        zoomInButton.frame = CGRectMake(mapCtrl.map.bounds.size.width - 64, mapCtrl.map.bounds.size.height - (buttonBase + 64), 54, 54);
+        zoomInButton.frame = CGRectMake(viewCtrl.map.bounds.size.width - 64, viewCtrl.map.bounds.size.height - (buttonBase + 64), 54, 54);
         zoomInButton.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleTopMargin;
         [zoomInButton setImage:[[UIImage imageNamed:@"ZoomIn.png"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal] forState:UIControlStateNormal];
-        [mapCtrl.map addSubview:zoomInButton];
+        [viewCtrl.map addSubview:zoomInButton];
 
         // Add zoomIn handler - method is inside GoogleMapsViewController
-        [zoomInButton addTarget:mapCtrl action:@selector(didTapZoomInButton:) forControlEvents:UIControlEventTouchUpInside];
+        [zoomInButton addTarget:viewCtrl action:@selector(didTapZoomInButton:) forControlEvents:UIControlEventTouchUpInside];
         
         // Zoom Out button
         UIButton *zoomOutButton = [UIButton buttonWithType:UIButtonTypeRoundedRect];
-        zoomOutButton.frame = CGRectMake(mapCtrl.map.bounds.size.width - 64, mapCtrl.map.bounds.size.height - buttonBase, 54, 54);
+        zoomOutButton.frame = CGRectMake(viewCtrl.map.bounds.size.width - 64, viewCtrl.map.bounds.size.height - buttonBase, 54, 54);
         zoomOutButton.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleTopMargin;
         [zoomOutButton setImage:[[UIImage imageNamed:@"ZoomOut.png"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal] forState:UIControlStateNormal];
-        [mapCtrl.map addSubview:zoomOutButton];
+        [viewCtrl.map addSubview:zoomOutButton];
 
         // Add zoomOut handler - method is inside GoogleMapsViewController
-        [zoomOutButton addTarget:mapCtrl action:@selector(didTapZoomOutButton:) forControlEvents:UIControlEventTouchUpInside];
+        [zoomOutButton addTarget:viewCtrl action:@selector(didTapZoomOutButton:) forControlEvents:UIControlEventTouchUpInside];
 
-    }}
+    }
+  });
+}
 
 /**
  * Intialize the panorama

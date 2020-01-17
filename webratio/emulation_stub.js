@@ -914,6 +914,11 @@ function createStubs() {
                     log(e);
                 });
             }
-        }
+        },
+		PluginEnvironment: {
+			isAvailable: function(){
+				log("isAvailable");
+			}
+		}
     };
 };
