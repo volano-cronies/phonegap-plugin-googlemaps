@@ -53,7 +53,7 @@ function createStubs() {
 		
 		// button image
 		var controlImage = document.createElement('img');
-		controlImage.src = './MobileDefault/images/button-my-location.png';
+		controlImage.src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB0AAAAdCAYAAABWk2cPAAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH4gUKCh8KEB0dawAAAB1pVFh0Q29tbWVudAAAAAAAQ3JlYXRlZCB3aXRoIEdJTVBkLmUHAAAC3klEQVRIx+2WMUhjWRSGv/d8xMSs2ShKQCvTaLGkfo1phFRWgr2FCBKIkMbGUgi2gWhjIykFm7XKahEeDGm2W0hsAoEYJsXgy2bju3nJy9liNtkZcDbJoG4zf3k59/wczv//92q3pU+y+cvPhIIzvDX+7HhYf7TQWu2ehH4yeC+0/uqhiYjwztD5H/CDdCyUUiil3p5UROj3+wDk83ny+TwA/X6fafRoTEOoaRqG8flKp9P5t8k/Z8OacZjIMsNmjuNQKBQolUo0m00AIpEIpmmSSCQIBAITEY8lHTZpNBpcXFzQbDbZ3NxkY2MDgEqlgmVZRCIRDg8PWVlZGUs80aSdTofT01MCgQCpVIpwOMzj4yMAq6ur2LZNNpvFcRxOTk4IBoPfP2m/32dmZoabmxsKhQJnZ2copbi8vKRarQIQjUbZ39/H7/dzfHxMIpFgZ2cHz/NGu55KvYZhoGkalmURj8cJh8Pkcjnq9fqopl6vk8vlCIfDxONxLMv6SnBTqbfb7XJ1dYVSilarRSwWo1ar0Wg0EJGRRVzXpdFoUKvViMVi3N3dkc1m8fv97O3t4fP5pvfpYDAYicLzvBf9KCJ4nvd5X5o21rPfnHR2dpaDgwMAUqkUlUqF3d1dFhcXabfbuK47WkEoFCIajXJ9fU0wGOTo6Oj7E6nX6yEimKZJsVjEcRySySTLy8vouo6u6ywtLZFMJnEch2KxiGmaiAi9Xu8/ffhNDAYDERGxbVvS6bRkMhlRSomISLlclnK5LCIiSinJZDKSTqfFtu2v7r6EicOhWq1yfn6O67psbW2xvr4OwMPDA/f39/h8PpLJJGtra68TDsMmT09P3N7eUiqVeH5+BmBubg7TNNne3mZhYeF1YvBLFeu6PgqNbDY7EtnQk1/WvMoro+v6yJ+GYTA/Pz9S79BWkxBONelL4TG01rT48Rt8W1Lleu9KaLe76L9+qGO3u+9G+NvvH/kbcivTqDjxm1kAAAAASUVORK5CYII=';
 		controlImage.draggable = false; 
 		controlImage.style.position = 'absolute'; 
 		controlImage.style.left = '0px'; 
@@ -761,7 +761,7 @@ function createStubs() {
 									var myLocationMarkerInfo = Marker.createMarker({
 										position: center,
 										draggable: false,
-										icon: './MobileDefault/images/marker-my-location.png'
+										icon: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAfCAYAAACGVs+MAAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH4gQSDDQgEZYDpgAAAbVJREFUSMftlr2KFFEUhL+69qzKMGbCJhqIoKAbaWKyCkY+gWBoZmBktys+gD9Mm/sEghgKspkgBquZILhGBoKYusiCy8wpg54ZNRn6Z8y64AYNh1tF3VPnNPTo0aMtSi//rgk1qn5iuKM5mQBhZ0AAQZHi/wkYBxQJSh8j1x6lL2JfBU4i7RDxHGkd+EamCRNX9SsUcJikNcL3gNvAqLpB4IX9r4BH2O+4e+igzrWpgVtHMO+R7iONkCryuYjqXEN6Q0pXFq51dqA0RAyQdpFO1ZJqg3SJXDvdHBgH5IKUbtYmnzsCL1fXhOP4iTRskbJb2E+XNWOqQX4WGLYKub2JNOjahOcXzdY45BoB7tID6jgvp0yn0/YCimTgbUtyY/9gK3O3JyjSd+BLqzEvveiWgmrmHwU2sbcb9YL9kSJtrCaGDw/EYPAauFzL+krAOWAXyeTqFEPIMrCvYz+bXb7sXb8ScYYifSJiKXl9Bx5PYCuD0qexN5BK7BNI2awigD1gm1w3/tmeK5qEMBTsw2z/X0D6DKzPyPeB48AHIHC9Vdwcf2+30n/EP/gFpdf638QePdrgNz4PlmSM8oVDAAAAAElFTkSuQmCC'
 									});
 									myLocationMarkerId = myLocationMarkerInfo.id;
 								}
