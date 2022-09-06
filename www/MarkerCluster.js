@@ -489,20 +489,24 @@ Object.defineProperty(MarkerCluster.prototype, '_triggerRedraw', {
         var taskParams = self.taskQueue.pop();
         self.taskQueue.length = 0;
         var visibleRegion = self.map.getVisibleRegion();
-        self._redraw.call(self, {
-          visibleRegion: visibleRegion,
-          force: taskParams.force
-        });
+        if (visibleRegion != null){
+          self._redraw.call(self, {
+            visibleRegion: visibleRegion,
+            force: taskParams.force
+          });
+        }
       });
     } else {
       var taskParams = self.taskQueue.pop();
       self.taskQueue.length = 0;
 
       var visibleRegion = self.map.getVisibleRegion();
-      self._redraw.call(self, {
-        visibleRegion: visibleRegion,
-        force: taskParams.force
-      });
+      if (visibleRegion != null){
+        self._redraw.call(self, {
+          visibleRegion: visibleRegion,
+          force: taskParams.force
+        });
+      }
     }
   },
   writable: false

@@ -47,6 +47,8 @@ var HTMLInfoWindow = function () {
     }
   };
 
+  // make sure that close method actually closes this infowindow
+  self.close = self.close.bind(self);
   Object.defineProperty(self, '_hook', {
     value: listenerMgr,
     writable: false
