@@ -870,7 +870,7 @@ function postPanoramaInit(panorama, div, options) {
     return;
   }
   // If the given div is not fully ready, wait a little
-  if (!common.shouldWatchByNative(div)) {
+  if (!common.shouldWatchByNative(div) || (div.offsetWidth === 0 && div.offsetHeight === 0)) {
     setTimeout(function() {
       common.nextTick(postPanoramaInit.bind(self, panorama, div, options));
     }, 50);
@@ -944,7 +944,7 @@ function postMapInit(map, div, options) {
 
   if (common.isDom(div)) {
     // If the given div is not fully ready, wait a little
-    if (!common.shouldWatchByNative(div)) {
+    if (!common.shouldWatchByNative(div) || (div.offsetWidth === 0 && div.offsetHeight === 0)) {
       setTimeout(function() {
         common.nextTick(postMapInit.bind(self, map, div, options));
       }, 50);
