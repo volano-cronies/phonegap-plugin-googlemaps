@@ -702,7 +702,7 @@ function createStubs() {
                 return mapInit["mapinitialized"];
             },
             getMap: function(options) {
-				var mapId = arguments[0];
+				var mapId = arguments[0] ? arguments[0].__pgmId : "(unknown_id)";
 				map = window.top["gmaps"][mapId];
 				if (!map) {
                 	// register the runtime map instance as new ripple service
@@ -879,7 +879,7 @@ function createStubs() {
             	log("backHistory");
             }
         },
-        Geocoder: {
+        PluginGeocoder: {
             geocode: function(address) {
                 geocoder = new google.maps.Geocoder();
 
