@@ -430,10 +430,11 @@
     <!-- localized messages for Vietnamese -->
     <resource-file src="src/ios/strings/pgm_Localizable_vi.json" target="pgm_Localizable_vi.json"/>
 
-    <resource-file src="assets/ios/ZoomIn.imageset/Contents.json" target="../Images.xcassets/ZoomIn.imageset/Contents.json" />
+    <!-- <resource-file src="assets/ios/ZoomIn.imageset/Contents.json" target="../Images.xcassets/ZoomIn.imageset/Contents.json" />
     <resource-file src="assets/ios/ZoomIn.imageset/zoomin.png" target="../Images.xcassets/ZoomIn.imageset/zoomin.png" />
     <resource-file src="assets/ios/ZoomOut.imageset/Contents.json" target="../Images.xcassets/ZoomOut.imageset/Contents.json" />
-    <resource-file src="assets/ios/ZoomOut.imageset/zoomout.png" target="../Images.xcassets/ZoomOut.imageset/zoomout.png" />
+    <resource-file src="assets/ios/ZoomOut.imageset/zoomout.png" target="../Images.xcassets/ZoomOut.imageset/zoomout.png" /> -->
+    
     <resource-file src="assets/ios/ZoomIn.imageset/Contents.json" target="Images.xcassets/ZoomIn.imageset/Contents.json" />
     <resource-file src="assets/ios/ZoomIn.imageset/zoomin.png" target="Images.xcassets/ZoomIn.imageset/zoomin.png" />
     <resource-file src="assets/ios/ZoomOut.imageset/Contents.json" target="Images.xcassets/ZoomOut.imageset/Contents.json" />
